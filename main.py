@@ -1,6 +1,10 @@
 #!/usr/bin/env python
 
+import os
 import random
+
+DIR = os.path.dirname(__file__)
+TMP = os.path.join(DIR, "tmp")
 
 
 def random_formula(size):
@@ -21,9 +25,16 @@ def random_formula(size):
     return f"{left}{op}{right}"
 
 
+TEMPLATE = """
+\documentclass[varwidth=true, border=1pt]{standalone}
+%s
+\end{document}
+"""
+
+
 def main():
-    for _ in range(10):
-        print(random_formula(10))
+    with open(os.path.join(TMP, "example.tex"), "w") as f:
+        f.write(TEMPLATE % random_formula(10))
 
 
 if __name__ == "__main__":
