@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import os
+import pdf2image
 import random
 import re
 import subprocess
@@ -59,8 +60,21 @@ def write(tex, name):
         raise IOError("pdflatex failed")
 
 
-if __name__ == "__main__":
-    for n in range(20):
+def dimensions(name):
+    name = str(name)
+    pdf_filename = os.path.join(TMP, f"{name}.pdf")
+    pages = pdf2image.convert_from_path(pdf_filename)
+    assert len(pages) == 1
+    image = pages[0]
+    print("width, height =", image.size)
+
+
+def generate_pdfs(num):
+    for n in range(num):
         random.seed(n)
         tex = TEMPLATE % random_formula(10)
         write(tex, str(n))
+
+
+if __name__ == "__main__":
+    dimensions(7)
