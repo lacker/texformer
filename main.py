@@ -2,8 +2,10 @@
 
 import os
 import random
+import re
+import subprocess
 
-DIR = os.path.dirname(__file__)
+DIR = os.path.dirname(os.path.realpath(__file__))
 TMP = os.path.join(DIR, "tmp")
 
 
@@ -25,17 +27,27 @@ def random_formula(size):
     return f"{left}{op}{right}"
 
 
-TEMPLATE = """
+TEMPLATE = r"""
 \documentclass[varwidth=true, border=1pt]{standalone}
-%s
+\begin{document}
+$%s$
 \end{document}
 """
 
 
-def main():
-    with open(os.path.join(TMP, "example.tex"), "w") as f:
-        f.write(TEMPLATE % random_formula(10))
+def write(tex: str, name: str):
+    if not re.match("^[a-zA-Z_\\-0-9]+$", name):
+        raise ValueError(f"bad file prefix: {name}")
+    tex_filename = os.path.join(TMP, f"{name}.tex")
+    with open(tex_filename, "w") as f:
+        f.write(tex)
+
+    # pdflatex generates a bunch of files
+    os.chdir(TMP)
+    subprocess.run(["pdflatex", "-halt-on-error", tex_filename])
 
 
 if __name__ == "__main__":
-    main()
+    print(TMP)
+    tex = TEMPLATE % random_formula(10)
+    write(tex, "example")
