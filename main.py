@@ -35,9 +35,13 @@ $%s$
 """
 
 
-def write(tex: str, name: str):
+def write(tex, name):
+    name = str(name)
     if not re.match("^[a-zA-Z_\\-0-9]+$", name):
         raise ValueError(f"bad file prefix: {name}")
+    if "documentclass" not in tex[:100]:
+        raise ValueError(f"bad tex: {tex[:100]}")
+
     tex_filename = os.path.join(TMP, f"{name}.tex")
     with open(tex_filename, "w") as f:
         f.write(tex)
