@@ -24,7 +24,7 @@ def random_formula(size):
         return "\\frac{" + left + "}{" + right + "}"
 
     op = random.choice([" \\cdot ", "^", "_", "+", "-"])
-    return f"{left}{op}{right}"
+    return "{" + left + "}" + op + "{" + right + "}"
 
 
 TEMPLATE = r"""
@@ -44,10 +44,19 @@ def write(tex: str, name: str):
 
     # pdflatex generates a bunch of files
     os.chdir(TMP)
-    subprocess.run(["pdflatex", "-halt-on-error", tex_filename])
+    result = subprocess.run(
+        ["pdflatex", "-halt-on-error", tex_filename], capture_output=True
+    )
+
+    pdf_filename = os.path.join(TMP, f"{name}.pdf")
+    if result.returncode or not os.path.isfile(pdf_filename):
+        print("stdout:", result.stdout.decode("utf-8"))
+        print("stderr:", result.stderr.decode("utf-8"))
+        raise IOError("pdflatex failed")
 
 
 if __name__ == "__main__":
-    print(TMP)
-    tex = TEMPLATE % random_formula(10)
-    write(tex, "example")
+    for n in range(20):
+        random.seed(n)
+        tex = TEMPLATE % random_formula(10)
+        write(tex, str(n))
