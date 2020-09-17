@@ -37,6 +37,9 @@ $%s$
 
 
 def generate_pdf(n):
+    """
+    Creates a pdf which is experimentally of dimension at most 465 x 100.
+    """
     random.seed(n)
     tex = TEMPLATE % random_formula(10)
     write(tex, n)
