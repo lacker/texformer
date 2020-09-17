@@ -46,6 +46,11 @@ def generate_pdf(n):
     """
     Creates a pdf which is experimentally of dimension at most 465 x 105.
     """
+    pdf_filename = os.path.join(TMP, f"{name}.pdf")
+    if os.path.isfile(pdf_filename):
+        # It has already been generated
+        return
+
     tex = generate_tex(n)
     write(tex, n)
 
