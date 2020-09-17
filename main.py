@@ -2,6 +2,7 @@
 
 import os
 import pdf2image
+import PIL
 import random
 import re
 import subprocess
@@ -38,7 +39,7 @@ $%s$
 
 def generate_pdf(n):
     """
-    Creates a pdf which is experimentally of dimension at most 465 x 100.
+    Creates a pdf which is experimentally of dimension at most 465 x 105.
     """
     random.seed(n)
     tex = TEMPLATE % random_formula(10)
@@ -69,15 +70,46 @@ def write(tex, name):
         raise IOError("pdflatex failed")
 
 
-def dimensions(name):
+def open_pdf(name):
     """
-    Returns a (width, height) tuple.
+    Opens a pdf as an image.
     """
     name = str(name)
     pdf_filename = os.path.join(TMP, f"{name}.pdf")
     pages = pdf2image.convert_from_path(pdf_filename)
     assert len(pages) == 1
-    image = pages[0]
+    return pages[0]
+
+
+def normal(name):
+    """
+    Normalize by centering in a 384 x 64 image.
+    Returns a bilevel image. (Bilevel = each pixel is just white or black.)
+    """
+    target_width = 384
+    target_height = 64
+
+    # First we create a composite greyscale at the target size by pasting the pdf in.
+    composite = PIL.Image.new("L", (target_width, target_height), color=255)
+    pdf = open_pdf(name)
+    extra_width = composite.width - pdf.width
+    extra_height = composite.height - pdf.height
+    margin_left = extra_width // 2
+    margin_top = extra_height // 2
+    composite.paste(pdf, box=(margin_left, margin_top))
+
+    # Now convert to bilevel.
+    threshold = 200
+    fn = lambda x: 255 if x > threshold else 0
+    result = composite.point(fn, mode="1")
+    return result
+
+
+def dimensions(name):
+    """
+    Returns a (width, height) tuple.
+    """
+    image = open_pdf(name)
     return (image.width, image.height)
 
 
@@ -98,4 +130,8 @@ def generate_pdfs(num):
 
 
 if __name__ == "__main__":
-    generate_pdfs(100000)
+    base = 50
+    num = 10
+    for n in range(base, base + num):
+        image = normal(n)
+        image.show()
