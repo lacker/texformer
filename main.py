@@ -79,7 +79,7 @@ def dimensions(name):
 
 
 def generate_pdfs(num):
-    max_width, max_height = 0
+    max_width, max_height = 0, 0
     for n in range(num):
         generate_pdf(n)
         updated = False
