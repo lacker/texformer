@@ -91,7 +91,7 @@ def generate_pdfs(num):
             max_height = height
             updated = True
         if updated:
-            print("max (height, width) =", (height, width))
+            print("max (width, height) =", (max_width, max_height))
 
 
 if __name__ == "__main__":
