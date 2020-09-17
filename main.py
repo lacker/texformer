@@ -36,6 +36,12 @@ $%s$
 """
 
 
+def generate_pdf(n):
+    random.seed(n)
+    tex = TEMPLATE % random_formula(10)
+    write(tex, n)
+
+
 def write(tex, name):
     name = str(name)
     if not re.match("^[a-zA-Z_\\-0-9]+$", name):
@@ -61,20 +67,32 @@ def write(tex, name):
 
 
 def dimensions(name):
+    """
+    Returns a (width, height) tuple.
+    """
     name = str(name)
     pdf_filename = os.path.join(TMP, f"{name}.pdf")
     pages = pdf2image.convert_from_path(pdf_filename)
     assert len(pages) == 1
     image = pages[0]
-    print("width, height =", image.size)
+    return (image.width, image.height)
 
 
 def generate_pdfs(num):
+    max_width, max_height = 0
     for n in range(num):
-        random.seed(n)
-        tex = TEMPLATE % random_formula(10)
-        write(tex, str(n))
+        generate_pdf(n)
+        updated = False
+        width, height = dimensions(n)
+        if width > max_width:
+            max_width = width
+            updated = True
+        if height > max_height:
+            max_height = height
+            updated = True
+        if updated:
+            print("max (height, width) =", (height, width))
 
 
 if __name__ == "__main__":
-    dimensions(7)
+    generate_pdfs(100000)
