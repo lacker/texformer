@@ -6,6 +6,8 @@ import PIL
 import random
 import re
 import subprocess
+from torch.utils.data import Dataset
+from torchvision import transforms
 
 DIR = os.path.dirname(os.path.realpath(__file__))
 TMP = os.path.join(DIR, "tmp")
@@ -46,9 +48,9 @@ def generate_pdf(n):
     """
     Creates a pdf which is experimentally of dimension at most 465 x 105.
     """
-    pdf_filename = os.path.join(TMP, f"{name}.pdf")
+    pdf_filename = os.path.join(TMP, f"{n}.pdf")
     if os.path.isfile(pdf_filename):
-        # It has already been generated
+        # It already has been generated.
         return
 
     tex = generate_tex(n)
@@ -114,33 +116,24 @@ def normal(name):
     return result
 
 
-def dimensions(name):
-    """
-    Returns a (width, height) tuple.
-    """
-    image = open_pdf(name)
-    return (image.width, image.height)
+class AlphaDataset(Dataset):
+    def __init__(self, size, populate=False):
+        self.size = size
+        if populate:
+            for n in range(size):
+                generate_pdf(n)
+        self.to_tensor = transforms.ToTensor()
 
+    def __len__(self):
+        return self.size
 
-def generate_pdfs(num):
-    max_width, max_height = 0, 0
-    for n in range(num):
-        generate_pdf(n)
-        updated = False
-        width, height = dimensions(n)
-        if width > max_width:
-            max_width = width
-            updated = True
-        if height > max_height:
-            max_height = height
-            updated = True
-        if updated:
-            print("max (width, height) =", (max_width, max_height))
+    def __getitem__(self, index):
+        tex = generate_tex(index)
+        label = "alpha" in tex
+        image = normal(index)
+        tensor = self.to_tensor(image)
+        return tensor, label
 
 
 if __name__ == "__main__":
-    base = 50
-    num = 10
-    for n in range(base, base + num):
-        image = normal(n)
-        image.show()
+    dataset = AlphaDataset(100000)
