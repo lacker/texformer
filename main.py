@@ -94,14 +94,13 @@ def open_pdf(name):
 
 def normal(name):
     """
-    Normalize by centering in a 384 x 64 image.
-    Returns a bilevel image. (Bilevel = each pixel is just white or black.)
+    Normalize. Returns a greyscale image.
     """
-    target_width = 384
-    target_height = 64
+    box_width = 384
+    box_height = 64
 
-    # First we create a composite greyscale at the target size by pasting the pdf in.
-    composite = PIL.Image.new("L", (target_width, target_height), color=255)
+    # Create a composite greyscale at the target size by pasting the pdf in.
+    composite = PIL.Image.new("L", (box_width, box_height), color=255)
     pdf = open_pdf(name)
     extra_width = composite.width - pdf.width
     extra_height = composite.height - pdf.height
@@ -109,14 +108,14 @@ def normal(name):
     margin_top = extra_height // 2
     composite.paste(pdf, box=(margin_left, margin_top))
 
-    # Now convert to bilevel.
-    threshold = 200
-    fn = lambda x: 255 if x > threshold else 0
-    result = composite.point(fn, mode="1")
-    return result
+    return composite.resize((box_width // 2, box_height // 2))
 
 
 class AlphaDataset(Dataset):
+    """
+    A dataset for classifying whether the image contains an alpha.
+    """
+
     def __init__(self, size, populate=False):
         self.size = size
         if populate:
@@ -136,4 +135,6 @@ class AlphaDataset(Dataset):
 
 
 if __name__ == "__main__":
-    dataset = AlphaDataset(100000)
+    for n in range(30, 40):
+        image = normal(n)
+        image.show()
