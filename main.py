@@ -92,15 +92,22 @@ def open_pdf(name):
     return pages[0]
 
 
+# Parameters for image normalization.
+# The "input" parameters are the rectangle we read from the pdf.
+# The downscaling is how much we scale before putting it into the neural network.
+INPUT_WIDTH = 384
+INPUT_HEIGHT = 64
+DOWNSCALE = 2
+WIDTH = INPUT_WIDTH // DOWNSCALE
+HEIGHT = INPUT_HEIGHT // DOWNSCALE
+
+
 def normal(name):
     """
     Normalize. Returns a greyscale image.
     """
-    box_width = 384
-    box_height = 64
-
     # Create a composite greyscale at the target size by pasting the pdf in.
-    composite = PIL.Image.new("L", (box_width, box_height), color=255)
+    composite = PIL.Image.new("L", (INPUT_WIDTH, INPUT_HEIGHT), color=255)
     pdf = open_pdf(name)
     extra_width = composite.width - pdf.width
     extra_height = composite.height - pdf.height
@@ -108,7 +115,7 @@ def normal(name):
     margin_top = extra_height // 2
     composite.paste(pdf, box=(margin_left, margin_top))
 
-    return composite.resize((box_width // 2, box_height // 2))
+    return composite.resize((WIDTH, HEIGHT))
 
 
 class AlphaDataset(Dataset):
