@@ -6,6 +6,7 @@ import PIL
 import random
 import re
 import subprocess
+from torch import nn
 from torch.utils.data import DataLoader, Dataset, Subset
 from torchvision import transforms
 
