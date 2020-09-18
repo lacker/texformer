@@ -132,11 +132,13 @@ class AlphaDataset(Dataset):
 
         trainsize = int(0.9 * size)
         train_indices = range(trainsize)
+        self.trainset = Subset(self, train_indices)
+        self.trainloader = DataLoader(self.trainset, batch_size=4, shuffle=True)
+
         testsize = size - trainsize
         test_indices = range(trainsize, size)
-
-        self.trainset = Subset(self, train_indices)
         self.testset = Subset(self, test_indices)
+        self.testloader = DataLoader(self.testset, batch_size=4, shuffle=True)
 
     def __len__(self):
         return self.size
