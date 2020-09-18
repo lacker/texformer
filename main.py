@@ -6,7 +6,7 @@ import PIL
 import random
 import re
 import subprocess
-from torch.utils.data import Dataset
+from torch.utils.data import DataLoader, Dataset, Subset
 from torchvision import transforms
 
 DIR = os.path.dirname(os.path.realpath(__file__))
@@ -130,6 +130,14 @@ class AlphaDataset(Dataset):
                 generate_pdf(n)
         self.to_tensor = transforms.ToTensor()
 
+        trainsize = int(0.9 * size)
+        train_indices = range(trainsize)
+        testsize = size - trainsize
+        test_indices = range(trainsize, size)
+
+        self.trainset = Subset(self, train_indices)
+        self.testset = Subset(self, test_indices)
+
     def __len__(self):
         return self.size
 
@@ -142,6 +150,4 @@ class AlphaDataset(Dataset):
 
 
 if __name__ == "__main__":
-    for n in range(30, 40):
-        image = normal(n)
-        image.show()
+    dataset = AlphaDataset(100000)
