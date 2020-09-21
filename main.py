@@ -216,7 +216,7 @@ class Trainer:
             self.optimizer.step()
 
             running_loss += loss.item()
-            group_size = 2000
+            group_size = 100
             if batch % group_size == 0:
                 current_loss = running_loss / group_size
                 print(f"epoch {self.epochs}, batch {batch}: loss = {current_loss:.3f}")
