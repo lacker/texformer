@@ -16,6 +16,7 @@ from torchvision import transforms
 
 DIR = os.path.dirname(os.path.realpath(__file__))
 TMP = os.path.join(DIR, "tmp")
+MODEL_PATH = os.path.join(TMP, "model.pt")
 
 
 def random_formula(size):
@@ -191,10 +192,13 @@ class Net(nn.Module):
 class Trainer:
     def __init__(self):
         self.data = Alphaset()
-
-        # TODO: load net from disk if possible
         assert torch.cuda.is_available()
-        self.model = Net().cuda()
+
+        # Load net from disk if possible
+        try:
+            self.model = torch.load(MODEL_PATH)
+        except FileNotFoundError:
+            self.model = Net().cuda()
 
         self.criterion = nn.CrossEntropyLoss().cuda()
         self.optimizer = optim.Adam(self.model.parameters(), lr=0.0003)
@@ -224,6 +228,7 @@ class Trainer:
 
         elapsed = time.time() - start
         print(f"epoch took {timedelta(seconds=elapsed)}")
+        torch.save(self.model, MODEL_PATH)
 
 
 if __name__ == "__main__":
