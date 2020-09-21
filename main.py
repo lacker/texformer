@@ -147,18 +147,19 @@ class Alphaset(Dataset):
                 generate_pdf(n)
         self.to_tensor = transforms.ToTensor()
 
-        trainsize = int(0.9 * size)
-        train_indices = range(trainsize)
+        batch_size = 8
+        train_size = int(0.9 * size)
+        train_indices = range(train_size)
         self.trainset = Subset(self, train_indices)
         self.trainloader = DataLoader(
-            self.trainset, batch_size=4, shuffle=True, pin_memory=True
+            self.trainset, batch_size=batch_size, shuffle=True, pin_memory=True
         )
 
-        testsize = size - trainsize
-        test_indices = range(trainsize, size)
+        test_size = size - train_size
+        test_indices = range(train_size, size)
         self.testset = Subset(self, test_indices)
         self.testloader = DataLoader(
-            self.testset, batch_size=4, shuffle=True, pin_memory=True
+            self.testset, batch_size=batch_size, shuffle=True, pin_memory=True
         )
 
     def __len__(self):
@@ -246,4 +247,5 @@ class Trainer:
 
 if __name__ == "__main__":
     t = Trainer()
-    t.epoch()
+    for _ in range(60):
+        t.epoch()
