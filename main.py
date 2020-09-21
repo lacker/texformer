@@ -7,6 +7,7 @@ import random
 import re
 import subprocess
 from torch import nn
+from torch import optim
 from torch.utils.data import DataLoader, Dataset, Subset
 from torchvision import transforms
 
@@ -98,14 +99,15 @@ def open_pdf(name):
 # The downscaling is how much we scale before putting it into the neural network.
 INPUT_WIDTH = 384
 INPUT_HEIGHT = 64
-DOWNSCALE = 2
-WIDTH = INPUT_WIDTH // DOWNSCALE
-HEIGHT = INPUT_HEIGHT // DOWNSCALE
+WIDTH = 192
+HEIGHT = 32
 
 
 def normal(name):
     """
-    Normalize. Returns a greyscale image.
+    Normalize.
+    Colors are swapped so that zero = blank space, to make padding with zeros saner.
+    Returns a greyscale image.
     """
     # Create a composite greyscale at the target size by pasting the pdf in.
     composite = PIL.Image.new("L", (INPUT_WIDTH, INPUT_HEIGHT), color=255)
@@ -116,15 +118,16 @@ def normal(name):
     margin_top = extra_height // 2
     composite.paste(pdf, box=(margin_left, margin_top))
 
-    return composite.resize((WIDTH, HEIGHT))
+    inverted = PIL.ImageOps.invert(composite)
+    return inverted.resize((WIDTH, HEIGHT))
 
 
-class AlphaDataset(Dataset):
+class Alphaset(Dataset):
     """
     A dataset for classifying whether the image contains an alpha.
     """
 
-    def __init__(self, size, populate=False):
+    def __init__(self, size=100000, populate=False):
         self.size = size
         if populate:
             for n in range(size):
@@ -152,5 +155,47 @@ class AlphaDataset(Dataset):
         return tensor, label
 
 
+class Net(nn.Module):
+    def __init__(self):
+        super(Net, self).__init__()
+
+        # Each convolution layer shrinks each dimension 2x
+        out_width = WIDTH // 4
+        out_height = HEIGHT // 4
+
+        self.cnn_layers = nn.Sequential(
+            # The first convolution layer
+            nn.Conv2d(1, 4, kernel_size=3, padding=1, bias=False),
+            nn.BatchNorm2d(4),
+            nn.ReLU(inplace=True),
+            nn.MaxPool2d(kernel_size=2, stride=2),
+            # The second convolution layer
+            nn.Conv2d(4, 4, kernel_size=3, padding=1, bias=False),
+            nn.BatchNorm2d(4),
+            nn.ReLU(inplace=True),
+            nn.MaxPool2d(kernel_size=2, stride=2),
+        )
+
+        self.linear_layer = nn.Linear(4 * out_width * out_height, 1)
+
+    def forward(self, x):
+        x = self.cnn_layers(x)
+        x = x.view(x.size(0), -1)
+        x = self.linear_layer(x)
+        return x
+
+
+class Trainer:
+    def __init__(self):
+        self.data = Alphaset()
+
+        # TODO: load net from disk if possible
+        assert torch.cuda.is_available()
+        self.model = Net().cuda()
+
+        self.criterion = nn.CrossEntropyLoss().cuda()
+        self.optimizer = optim.Adam(self.net.parameters(), lr=0.0003)
+
+
 if __name__ == "__main__":
-    dataset = AlphaDataset(100000)
+    dataset = Alphaset(100000)
