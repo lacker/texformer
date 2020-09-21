@@ -147,7 +147,7 @@ class Alphaset(Dataset):
                 generate_pdf(n)
         self.to_tensor = transforms.ToTensor()
 
-        batch_size = 8
+        batch_size = 18
         train_size = int(0.9 * size)
         train_indices = range(train_size)
         self.trainset = Subset(self, train_indices)
@@ -211,6 +211,7 @@ class Trainer:
         # Load net from disk if possible
         try:
             self.model = torch.load(MODEL_PATH)
+            print("resuming from existing model")
         except FileNotFoundError:
             self.model = Net().cuda()
 
