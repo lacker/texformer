@@ -117,7 +117,7 @@ def normal(name):
     filename = os.path.join(TMP, f"{name}.normal")
     try:
         return PIL.Image.open(filename)
-    except ValueError:
+    except FileNotFoundError:
         pass
 
     # Create a composite greyscale at the target size by pasting the pdf in.
