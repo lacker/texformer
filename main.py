@@ -1,11 +1,14 @@
 #!/usr/bin/env python
 
+from datetime import timedelta
 import os
 import pdf2image
 import PIL
 import random
 import re
 import subprocess
+import time
+import torch
 from torch import nn
 from torch import optim
 from torch.utils.data import DataLoader, Dataset, Subset
@@ -149,7 +152,7 @@ class Alphaset(Dataset):
 
     def __getitem__(self, index):
         tex = generate_tex(index)
-        label = "alpha" in tex
+        label = 1 if "alpha" in tex else 0
         image = normal(index)
         tensor = self.to_tensor(image)
         return tensor, label
@@ -176,7 +179,7 @@ class Net(nn.Module):
             nn.MaxPool2d(kernel_size=2, stride=2),
         )
 
-        self.linear_layer = nn.Linear(4 * out_width * out_height, 1)
+        self.linear_layer = nn.Linear(4 * out_width * out_height, 2)
 
     def forward(self, x):
         x = self.cnn_layers(x)
@@ -194,8 +197,35 @@ class Trainer:
         self.model = Net().cuda()
 
         self.criterion = nn.CrossEntropyLoss().cuda()
-        self.optimizer = optim.Adam(self.net.parameters(), lr=0.0003)
+        self.optimizer = optim.Adam(self.model.parameters(), lr=0.0003)
+        self.epochs = 0
+
+    def epoch(self):
+        start = time.time()
+        self.epochs += 1
+
+        running_loss = 0.0
+        for i, data in enumerate(self.data.trainloader):
+            batch = i + 1
+            inputs, labels = data
+            inputs, labels = inputs.cuda(), labels.cuda()
+            self.optimizer.zero_grad()
+            outputs = self.model(inputs)
+            loss = self.criterion(outputs, labels)
+            loss.backward()
+            self.optimizer.step()
+
+            running_loss += loss.item()
+            group_size = 2000
+            if batch % group_size == 0:
+                current_loss = running_loss / group_size
+                print(f"epoch {self.epochs}, batch {batch}: loss = {current_loss:.3f}")
+                running_loss = 0.0
+
+        elapsed = time.time() - start
+        print(f"epoch took {timedelta(seconds=elapsed)}")
 
 
 if __name__ == "__main__":
-    dataset = Alphaset(100000)
+    t = Trainer()
+    t.epoch()
