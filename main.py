@@ -112,7 +112,14 @@ def normal(name):
     Normalize.
     Colors are swapped so that zero = blank space, to make padding with zeros saner.
     Returns a greyscale image.
+    If you change the normalization algorithm, remove all the .normal files in the tmp directory.
     """
+    filename = os.path.join(TMP, f"{name}.normal")
+    try:
+        return PIL.Image.open(filename)
+    except ValueError:
+        pass
+
     # Create a composite greyscale at the target size by pasting the pdf in.
     composite = PIL.Image.new("L", (INPUT_WIDTH, INPUT_HEIGHT), color=255)
     pdf = open_pdf(name)
@@ -123,7 +130,9 @@ def normal(name):
     composite.paste(pdf, box=(margin_left, margin_top))
 
     inverted = PIL.ImageOps.invert(composite)
-    return inverted.resize((WIDTH, HEIGHT))
+    normalized = inverted.resize((WIDTH, HEIGHT))
+    normalized.save(filename, "PNG")
+    return normalized
 
 
 class Alphaset(Dataset):
@@ -141,12 +150,16 @@ class Alphaset(Dataset):
         trainsize = int(0.9 * size)
         train_indices = range(trainsize)
         self.trainset = Subset(self, train_indices)
-        self.trainloader = DataLoader(self.trainset, batch_size=4, shuffle=True)
+        self.trainloader = DataLoader(
+            self.trainset, batch_size=4, shuffle=True, pin_memory=True
+        )
 
         testsize = size - trainsize
         test_indices = range(trainsize, size)
         self.testset = Subset(self, test_indices)
-        self.testloader = DataLoader(self.testset, batch_size=4, shuffle=True)
+        self.testloader = DataLoader(
+            self.testset, batch_size=4, shuffle=True, pin_memory=True
+        )
 
     def __len__(self):
         return self.size
