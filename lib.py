@@ -222,7 +222,7 @@ class Trainer:
     def __init__(self):
         assert torch.cuda.is_available()
         self.data = Alphaset()
-        self.writer = SummaryWriter()
+        self.writer = SummaryWriter(log_dir="alpha")
 
         # Load net from disk if possible
         try:
@@ -230,14 +230,14 @@ class Trainer:
             print("resuming from existing model")
         except FileNotFoundError:
             self.model = Net().cuda()
+            self.model.epochs = 0
 
         self.criterion = nn.CrossEntropyLoss().cuda()
         self.optimizer = optim.Adam(self.model.parameters(), lr=0.0003)
-        self.epochs = 0
 
     def epoch(self):
         start = time.time()
-        self.epochs += 1
+        self.model.epochs += 1
 
         running_loss = 0.0
         for batch, inputs, labels in self.data.train_batches():
@@ -251,7 +251,9 @@ class Trainer:
             group_size = 100
             if batch % group_size == 0:
                 current_loss = running_loss / group_size
-                print(f"epoch {self.epochs}, batch {batch}: loss = {current_loss:.3f}")
+                print(
+                    f"epoch {self.model.epochs}, batch {batch}: loss = {current_loss:.3f}"
+                )
                 running_loss = 0.0
 
         elapsed = time.time() - start
@@ -278,7 +280,7 @@ class Trainer:
         accuracy = correct / total
         print(f"current accuracy = {correct}/{total} = {accuracy:.3f}")
         if log:
-            self.writer.add_scalar("accuracy", accuracy)
+            self.writer.add_scalar("accuracy", accuracy, self.model.epochs)
 
         return accuracy
 
