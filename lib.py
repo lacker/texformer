@@ -244,9 +244,3 @@ class Trainer:
         elapsed = time.time() - start
         print(f"epoch took {timedelta(seconds=elapsed)}")
         torch.save(self.model, MODEL_PATH)
-
-
-if __name__ == "__main__":
-    t = Trainer()
-    for _ in range(60):
-        t.epoch()
