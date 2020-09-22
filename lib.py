@@ -273,3 +273,26 @@ class Trainer:
                     )
 
         print(f"final: accuracy = {correct}/{total} = {(correct/total):.3f}")
+
+    def find_mistakes(self, n=10, show=False):
+        """
+        Return indices that are mistakes. Also pops up windows showing them.
+        """
+        answer = []
+        for i in range(self.data.size - 1, -1, -1):
+            image, label = self.data[i]
+            image = image.unsqueeze(0).cuda()
+            output = self.model(image)
+            _, predicted = torch.max(output, 1)
+            predicted = predicted.item()
+            correct = predicted == label
+
+            if not correct:
+                print(f"image {i} label = {label}, predicted = {predicted}")
+                if show:
+                    open_pdf(i).show()
+
+                answer.append(i)
+                if len(answer) >= n:
+                    break
+        return answer
