@@ -12,6 +12,7 @@ import torch
 from torch import nn
 from torch import optim
 from torch.utils.data import DataLoader, Dataset, Subset
+from torch.utils.tensorboard import SummaryWriter
 from torchvision import transforms
 
 DIR = os.path.dirname(os.path.realpath(__file__))
@@ -219,8 +220,9 @@ class Net(nn.Module):
 
 class Trainer:
     def __init__(self):
-        self.data = Alphaset()
         assert torch.cuda.is_available()
+        self.data = Alphaset()
+        self.writer = SummaryWriter()
 
         # Load net from disk if possible
         try:
@@ -254,9 +256,10 @@ class Trainer:
 
         elapsed = time.time() - start
         print(f"epoch took {timedelta(seconds=elapsed)}")
+        self.evaluate(log=True)
         torch.save(self.model, MODEL_PATH)
 
-    def evaluate(self):
+    def evaluate(self, log=False):
         total = 0
         correct = 0
         with torch.no_grad():
@@ -269,10 +272,15 @@ class Trainer:
                 group_size = 100
                 if batch % group_size == 0:
                     print(
-                        f"batch {batch}: accuracy = {correct}/{total} = {(correct/total):.3f}"
+                        f"eval batch {batch}: accuracy = {correct}/{total} = {(correct/total):.3f}"
                     )
 
-        print(f"final: accuracy = {correct}/{total} = {(correct/total):.3f}")
+        accuracy = correct / total
+        print(f"current accuracy = {correct}/{total} = {accuracy:.3f}")
+        if log:
+            self.writer.add_scalar("accuracy", accuracy)
+
+        return accuracy
 
     def find_mistakes(self, n=10, show=False):
         """
