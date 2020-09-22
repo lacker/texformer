@@ -265,9 +265,11 @@ class Trainer:
                 _, predicted = torch.max(outputs, 1)
                 total += labels.size(0)
                 correct += (predicted == labels).sum().item()
-                
+
                 group_size = 100
                 if batch % group_size == 0:
-                    print(f"batch {batch}: accuracy = {correct}/{total} = {(correct/total):.3f}")
+                    print(
+                        f"batch {batch}: accuracy = {correct}/{total} = {(correct/total):.3f}"
+                    )
 
-        print(f"final: accuracy = {correct}/{total} = {(correct/total}:.3f}")
+        print(f"final: accuracy = {correct}/{total} = {(correct/total):.3f}")
