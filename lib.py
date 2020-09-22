@@ -162,6 +162,20 @@ class Alphaset(Dataset):
             self.testset, batch_size=batch_size, shuffle=True, pin_memory=True
         )
 
+    def iter_batches(self, loader):
+        "Iterate over (batch, images, labels) tuples."
+        for i, data in enumerate(loader):
+            batch = i + 1
+            inputs, labels = data
+            inputs, labels = inputs.cuda(), labels.cuda()
+            yield batch, inputs, labels
+
+    def train_batches(self):
+        return self.iter_batches(self.trainloader)
+
+    def test_batches(self):
+        return self.iter_batches(self.testloader)
+
     def __len__(self):
         return self.size
 
@@ -224,10 +238,7 @@ class Trainer:
         self.epochs += 1
 
         running_loss = 0.0
-        for i, data in enumerate(self.data.trainloader):
-            batch = i + 1
-            inputs, labels = data
-            inputs, labels = inputs.cuda(), labels.cuda()
+        for batch, inputs, labels in self.data.train_batches():
             self.optimizer.zero_grad()
             outputs = self.model(inputs)
             loss = self.criterion(outputs, labels)
@@ -244,3 +255,19 @@ class Trainer:
         elapsed = time.time() - start
         print(f"epoch took {timedelta(seconds=elapsed)}")
         torch.save(self.model, MODEL_PATH)
+
+    def evaluate(self):
+        total = 0
+        correct = 0
+        with torch.no_grad():
+            for batch, inputs, labels in self.data.test_batches():
+                outputs = self.model(inputs)
+                _, predicted = torch.max(outputs, 1)
+                total += labels.size(0)
+                correct += (predicted == labels).sum().item()
+                
+                group_size = 100
+                if batch % group_size == 0:
+                    print(f"batch {batch}: accuracy = {correct}/{total} = {(correct/total}:.3f}")
+
+        print(f"final: accuracy = {correct}/{total} = {(correct/total}:.3f}")
