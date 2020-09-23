@@ -98,6 +98,10 @@ class Net(nn.Module):
         return x
 
 
+def flatten(tensor):
+    return [x.item() for x in torch.flatten(tensor)]
+
+
 class Trainer:
     def __init__(self):
         assert torch.cuda.is_available()
@@ -146,13 +150,14 @@ class Trainer:
         correct = 0
         with torch.no_grad():
             for batch, inputs, labels in self.data.test_batches():
-                outputs = self.model(inputs)
+                outputs = flatten(self.model(inputs))
+                flat_labels = flatten(labels)
                 batch_score = 0
-                for label, output in zip(torch.flatten(labels), torch.flatten(outputs)):
-                    output_int = 1 if output.item() > 0.5 else 0
-                    if output_int == label.item():
+                for label, output in zip(flat_labels, outputs):
+                    output_int = 1 if output > 0.5 else 0
+                    if output_int == label:
                         batch_score += 1
-                total += labels.size(0)
+                total += len(flat_labels)
                 correct += batch_score
 
                 group_size = 100
