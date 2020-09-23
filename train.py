@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-from alpha import *
+from multilabel import *
 
 if __name__ == "__main__":
     t = Trainer()

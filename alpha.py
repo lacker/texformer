@@ -1,7 +1,11 @@
 #!/usr/bin/env python
+from datetime import timedelta
 import os
+import time
 
 from lib import *
+
+MODEL_PATH = os.path.join(TMP, "alpha.pt")
 
 
 class Alphaset(Dataset):
@@ -49,8 +53,8 @@ class Alphaset(Dataset):
         return self.size
 
     def __getitem__(self, index):
-        tex = generate_tex(index)
-        label = 1 if "alpha" in tex else 0
+        formula = generate_formula(index)
+        label = 1 if "\\alpha" in formula else 0
         image = normal(index)
         tensor = self.to_tensor(image)
         return tensor, label

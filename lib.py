@@ -1,13 +1,11 @@
 #!/usr/bin/env python
 
-from datetime import timedelta
 import os
 import pdf2image
 import PIL
 import random
 import re
 import subprocess
-import time
 import torch
 from torch import nn
 from torch import optim
@@ -17,7 +15,7 @@ from torchvision import transforms
 
 DIR = os.path.dirname(os.path.realpath(__file__))
 TMP = os.path.join(DIR, "tmp")
-MODEL_PATH = os.path.join(TMP, "model.pt")
+
 
 # Types of formula nodes
 ATOM = "atom"
@@ -61,23 +59,14 @@ class Formula:
         else:
             raise ValueError("bad node type")
 
-
-def random_formula(size):
-    assert size > 0
-    if size == 1:
-        return random.choice(
-            ["x", "y", "z", "a", "b", "c", "1", "2", "3", "4", "\\alpha", "\\beta"]
-        )
-    left_size = random.randrange(1, size)
-    right_size = size - left_size
-    left = random_formula(left_size)
-    right = random_formula(right_size)
-
-    if random.random() < 0.1:
-        return "\\frac{" + left + "}{" + right + "}"
-
-    op = random.choice([" \\cdot ", "^", "_", "+", "-"])
-    return "{" + left + "}" + op + "{" + right + "}"
+    def __contains__(self, token):
+        if self.token == token:
+            return True
+        if self.left and token in self.left:
+            return True
+        if self.right and token in self.right:
+            return True
+        return False
 
 
 TEMPLATE = r"""
@@ -88,9 +77,9 @@ $%s$
 """
 
 
-def generate_tex(n):
+def generate_formula(n):
     random.seed(n)
-    return TEMPLATE % random_formula(10)
+    return Formula(10)
 
 
 def generate_pdf(n):
@@ -102,7 +91,7 @@ def generate_pdf(n):
         # It already has been generated.
         return
 
-    tex = generate_tex(n)
+    tex = TEMPLATE % generate_formula(n)
     write(tex, n)
 
 
@@ -179,9 +168,4 @@ def normal(name):
 
 
 if __name__ == "__main__":
-    for n in range(100000):
-        random.seed(n)
-        a = str(Formula(10))
-        random.seed(n)
-        b = random_formula(10)
-        assert a == b
+    pass
