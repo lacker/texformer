@@ -89,7 +89,7 @@ class Net(nn.Module):
             nn.MaxPool2d(kernel_size=2, stride=2),
         )
 
-        self.linear_layer = nn.Linear(4 * out_width * out_height, 2)
+        self.linear_layer = nn.Linear(4 * out_width * out_height, len(TOKENS))
 
     def forward(self, x):
         x = self.cnn_layers(x)
