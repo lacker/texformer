@@ -19,6 +19,48 @@ DIR = os.path.dirname(os.path.realpath(__file__))
 TMP = os.path.join(DIR, "tmp")
 MODEL_PATH = os.path.join(TMP, "model.pt")
 
+# Types of formula nodes
+ATOM = "atom"
+PREFIX = "prefix"
+INFIX = "infix"
+
+
+class Formula:
+    def __init__(self, size):
+        assert size > 0
+        self.size = size
+        if size == 1:
+            self.node_type = ATOM
+            self.token = random.choice(
+                ["x", "y", "z", "a", "b", "c", "1", "2", "3", "4", "\\alpha", "\\beta"]
+            )
+            self.left = None
+            self.right = None
+            return
+
+        left_size = random.randrange(1, size)
+        right_size = size - left_size
+        self.left = Formula(left_size)
+        self.right = Formula(right_size)
+
+        if random.random() < 0.1:
+            self.node_type = PREFIX
+            self.token = "\\frac"
+            return
+
+        self.node_type = INFIX
+        self.token = random.choice([" \\cdot ", "^", "_", "+", "-"])
+
+    def __str__(self):
+        if self.node_type == ATOM:
+            return self.token
+        elif self.node_type == PREFIX:
+            return self.token + "{" + str(self.left) + "}{" + str(self.right) + "}"
+        elif self.node_type == INFIX:
+            return "{" + str(self.left) + "}" + self.token + "{" + str(self.right) + "}"
+        else:
+            raise ValueError("bad node type")
+
 
 def random_formula(size):
     assert size > 0
@@ -134,3 +176,12 @@ def normal(name):
     normalized = inverted.resize((WIDTH, HEIGHT))
     normalized.save(filename, "PNG")
     return normalized
+
+
+if __name__ == "__main__":
+    for n in range(100000):
+        random.seed(n)
+        a = str(Formula(10))
+        random.seed(n)
+        b = random_formula(10)
+        assert a == b
