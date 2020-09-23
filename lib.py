@@ -22,6 +22,8 @@ ATOM = "atom"
 PREFIX = "prefix"
 INFIX = "infix"
 
+ATOMS = ["x", "y", "z", "a", "b", "c", "1", "2", "3", "4", "\\alpha", "\\beta"]
+
 
 class Formula:
     def __init__(self, size):
@@ -29,9 +31,7 @@ class Formula:
         self.size = size
         if size == 1:
             self.node_type = ATOM
-            self.token = random.choice(
-                ["x", "y", "z", "a", "b", "c", "1", "2", "3", "4", "\\alpha", "\\beta"]
-            )
+            self.token = random.choice(ATOMS)
             self.left = None
             self.right = None
             return

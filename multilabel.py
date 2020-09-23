@@ -5,8 +5,8 @@ import time
 
 from lib import *
 
-TOKENS = ["\\alpha", "\\beta"]
-RUN_NAME = "alphabeta"
+TOKENS = ATOMS
+RUN_NAME = "tokens"
 MODEL_PATH = os.path.join(TMP, f"{RUN_NAME}.pt")
 
 
