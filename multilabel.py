@@ -123,8 +123,11 @@ class Trainer:
         start = time.time()
         self.model.epochs += 1
 
+        total_loss = 0.0
         running_loss = 0.0
+        last_batch = 1
         for batch, inputs, labels in self.data.train_batches():
+            last_batch = batch
             self.optimizer.zero_grad()
             outputs = self.model(inputs)
             loss = self.criterion(outputs, labels)
@@ -132,6 +135,7 @@ class Trainer:
             self.optimizer.step()
 
             running_loss += loss.item()
+            total_loss += loss.item()
             group_size = 100
             if batch % group_size == 0:
                 current_loss = running_loss / group_size
@@ -139,9 +143,10 @@ class Trainer:
                     f"epoch {self.model.epochs}, batch {batch}: loss = {current_loss:.3f}"
                 )
                 running_loss = 0.0
-
+        loss = total_loss / last_batch
         elapsed = time.time() - start
-        print(f"epoch took {timedelta(seconds=elapsed)}")
+        print(f"epoch took {timedelta(seconds=elapsed)}. loss = {loss:.3f}")
+        self.writer.add_scalar("loss", loss, self.model.epochs)
         self.evaluate(log=True)
         torch.save(self.model, MODEL_PATH)
 
