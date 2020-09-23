@@ -1,7 +1,7 @@
 #!/usr/bin/env python
-from lib import *
+from alpha import *
 
 if __name__ == "__main__":
     t = Trainer()
-    for _ in range(60):
+    for _ in range(100):
         t.epoch()
