@@ -134,6 +134,7 @@ class Trainer:
                 print(
                     f"epoch {self.model.epochs}, batch {batch}: loss = {current_loss:.3f}"
                 )
+                running_loss = 0.0
 
         elapsed = time.time() - start
         print(f"epoch took {timedelta(seconds=elapsed)}")
@@ -147,9 +148,9 @@ class Trainer:
             for batch, inputs, labels in self.data.test_batches():
                 outputs = self.model(inputs)
                 batch_score = 0
-                for label, output in zip(labels, outputs):
-                    label_int = 1 if label.item() > 0.5 else 0
-                    if label_int == output.item():
+                for label, output in zip(torch.flatten(labels), torch.flatten(outputs)):
+                    output_int = 1 if output.item() > 0.5 else 0
+                    if output_int == label.item():
                         batch_score += 1
                 total += labels.size(0)
                 correct += batch_score
