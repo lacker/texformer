@@ -6,7 +6,9 @@ import time
 from lib import *
 
 TOKENS = ATOMS
-RUN_NAME = "tokens8"
+LEAF_CHANNELS = 8
+MID_CHANNELS = 8
+RUN_NAME = f"tokens-{LEAF_CHANNELS}-{MID_CHANNELS}"
 MODEL_PATH = os.path.join(TMP, f"{RUN_NAME}.pt")
 
 
@@ -76,22 +78,24 @@ class Net(nn.Module):
         out_width = WIDTH // 4
         out_height = HEIGHT // 4
 
-        channels = 8
-
         self.cnn_layers = nn.Sequential(
             # The first convolution layer
-            nn.Conv2d(1, channels, kernel_size=3, padding=1, bias=False),
-            nn.BatchNorm2d(channels),
+            nn.Conv2d(1, LEAF_CHANNELS, kernel_size=3, padding=1, bias=False),
+            nn.BatchNorm2d(LEAF_CHANNELS),
             nn.ReLU(inplace=True),
             nn.MaxPool2d(kernel_size=2, stride=2),
             # The second convolution layer
-            nn.Conv2d(channels, channels, kernel_size=3, padding=1, bias=False),
-            nn.BatchNorm2d(channels),
+            nn.Conv2d(
+                LEAF_CHANNELS, MID_CHANNELS, kernel_size=3, padding=1, bias=False
+            ),
+            nn.BatchNorm2d(MID_CHANNELS),
             nn.ReLU(inplace=True),
             nn.MaxPool2d(kernel_size=2, stride=2),
         )
 
-        self.linear_layer = nn.Linear(channels * out_width * out_height, len(TOKENS))
+        self.linear_layer = nn.Linear(
+            MID_CHANNELS * out_width * out_height, len(TOKENS)
+        )
 
     def forward(self, x):
         x = self.cnn_layers(x)
