@@ -76,20 +76,22 @@ class Net(nn.Module):
         out_width = WIDTH // 4
         out_height = HEIGHT // 4
 
+        channels = 6
+
         self.cnn_layers = nn.Sequential(
             # The first convolution layer
-            nn.Conv2d(1, 4, kernel_size=3, padding=1, bias=False),
-            nn.BatchNorm2d(4),
+            nn.Conv2d(1, channels, kernel_size=3, padding=1, bias=False),
+            nn.BatchNorm2d(channels),
             nn.ReLU(inplace=True),
             nn.MaxPool2d(kernel_size=2, stride=2),
             # The second convolution layer
-            nn.Conv2d(4, 4, kernel_size=3, padding=1, bias=False),
-            nn.BatchNorm2d(4),
+            nn.Conv2d(channels, channels, kernel_size=3, padding=1, bias=False),
+            nn.BatchNorm2d(channels),
             nn.ReLU(inplace=True),
             nn.MaxPool2d(kernel_size=2, stride=2),
         )
 
-        self.linear_layer = nn.Linear(4 * out_width * out_height, len(TOKENS))
+        self.linear_layer = nn.Linear(channels * out_width * out_height, len(TOKENS))
 
     def forward(self, x):
         x = self.cnn_layers(x)
