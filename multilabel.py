@@ -6,7 +6,7 @@ import time
 from lib import *
 
 TOKENS = ATOMS
-RUN_NAME = "tokens"
+RUN_NAME = "tokens8"
 MODEL_PATH = os.path.join(TMP, f"{RUN_NAME}.pt")
 
 
@@ -76,7 +76,7 @@ class Net(nn.Module):
         out_width = WIDTH // 4
         out_height = HEIGHT // 4
 
-        channels = 6
+        channels = 8
 
         self.cnn_layers = nn.Sequential(
             # The first convolution layer
