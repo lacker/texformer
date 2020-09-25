@@ -23,6 +23,8 @@ PREFIX = "prefix"
 INFIX = "infix"
 
 ATOMS = ["x", "y", "z", "a", "b", "c", "1", "2", "3", "4", "\\alpha", "\\beta"]
+PREFIX_OP = "\\frac"
+INFIX_OPS = [" \\cdot ", "^", "_", "+", "-"]
 
 
 class Formula:
@@ -43,11 +45,11 @@ class Formula:
 
         if random.random() < 0.1:
             self.node_type = PREFIX
-            self.token = "\\frac"
+            self.token = PREFIX_OP
             return
 
         self.node_type = INFIX
-        self.token = random.choice([" \\cdot ", "^", "_", "+", "-"])
+        self.token = random.choice(INFIX_OPS)
 
     def __str__(self):
         if self.node_type == ATOM:

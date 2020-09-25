@@ -5,10 +5,10 @@ import time
 
 from lib import *
 
-TOKENS = ATOMS
+TOKENS = ATOMS + [PREFIX_OP] + INFIX_OPS
 LEAF_CHANNELS = 20
 MID_CHANNELS = 20
-RUN_NAME = f"atoms-{LEAF_CHANNELS}-{MID_CHANNELS}"
+RUN_NAME = f"tokens-{LEAF_CHANNELS}-{MID_CHANNELS}"
 MODEL_PATH = os.path.join(TMP, f"{RUN_NAME}.pt")
 
 
