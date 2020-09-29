@@ -70,6 +70,15 @@ class Formula:
             return True
         return False
 
+    def preorder(self):
+        "Return a list of the tokens in this formula, in preorder."
+        answer = [self.token]
+        if self.left is not None:
+            answer += self.left.preorder()
+        if self.right is not None:
+            answer += self.right.preorder()
+        return answer
+
 
 TEMPLATE = r"""
 \documentclass[varwidth=true, border=1pt]{standalone}
