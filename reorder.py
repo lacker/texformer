@@ -96,3 +96,4 @@ class ExpressionSet(Dataset):
         inorder = [TOKENS.index(token) for token in expr.inorder_tokens()]
         preorder_tensor = torch.tensor(preorder, dtype=torch.long)
         inorder_tensor = torch.tensor(inorder, dtype=torch.long)
+        return preorder_tensor, inorder_tensor
