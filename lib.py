@@ -29,6 +29,9 @@ INFIX_OPS = [" \\cdot ", "^", "_", "+", "-"]
 
 class Formula:
     def __init__(self, size):
+        """
+        Size is just the number of leaf nodes. There are also (size - 1) internal nodes.
+        """
         assert size > 0
         self.size = size
         if size == 1:
