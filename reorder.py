@@ -2,8 +2,12 @@
 
 # Trying to train an LSTM to reorder trees.
 
+import os
 import random
 import torch
+from torch import nn, optim
+from torch.utils.data import DataLoader, Dataset
+from torch.utils.tensorboard import SummaryWriter
 
 DIR = os.path.dirname(os.path.realpath(__file__))
 TMP = os.path.join(DIR, "tmp")
@@ -16,6 +20,8 @@ ATOM = "atom"
 OPS = ["+"]
 ATOMS = ["1", "2", "3"]
 TOKENS = OPS + ATOMS
+
+SIZE = 7
 
 
 class Expression:
@@ -58,3 +64,35 @@ class Expression:
         answer.append(self.token)
         if self.right is not None:
             answer += self.right.preorder_tokens()
+
+
+class ExpressionSet(Dataset):
+    """
+    A dataset for manipulating trees of tokens.
+    We just generate new ones on the fly whenever we want expressions.
+    """
+
+    def __init__(self, size):
+        self.size = size
+        batch_size = 10
+        self.loader = DataLoader(self, batch_size=batch_size, pin_memory=True)
+
+    def batches(self):
+        """
+        Iterate over (batch, preorder, inorder) tuples, with orders mapped onto cuda structures.
+        """
+        for i, data in enumerate(self.loader):
+            batch = i + 1
+            preorder, inorder = data
+            preorder, inorder = preorder.cuda(), labels.cuda()
+            yield batch, preorder, inorder
+
+    def __len__(self):
+        return self.size
+
+    def __getitem__(self, index):
+        expr = Expression(SIZE)
+        preorder = [TOKENS.index(token) for token in expr.preorder_tokens()]
+        inorder = [TOKENS.index(token) for token in expr.inorder_tokens()]
+        preorder_tensor = torch.tensor(preorder, dtype=torch.long)
+        inorder_tensor = torch.tensor(inorder, dtype=torch.long)
