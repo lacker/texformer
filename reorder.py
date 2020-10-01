@@ -5,7 +5,6 @@
 import os
 import random
 import torch
-from torch import nn, optim
 from torch.utils.data import DataLoader, Dataset
 from torch.utils.tensorboard import SummaryWriter
 
@@ -21,6 +20,7 @@ OPS = ["+"]
 ATOMS = ["1", "2", "3"]
 TOKENS = OPS + ATOMS
 
+# How long our input and output formulas will be
 SIZE = 7
 
 
