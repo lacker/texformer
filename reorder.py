@@ -110,21 +110,41 @@ class ReorderDataset(Dataset):
         return input_tensor, output_tensor
 
 
-def get_model(dataset):
+def get_model(dataset, rebuild=False):
     set_seed(42)
-    try:
-        model = torch.load(MODEL_PATH)
-        print(f"resuming from existing model at {MODEL_PATH}")
-        return model
-    except FileNotFoundError:
-        print("constructing new model")
-        conf = GPTConfig(
-            dataset.vocab_size, dataset.block_size, n_layer=2, n_head=4, n_embd=128
-        )
-        model = GPT(conf)
-        return model
+    if not rebuild:
+        try:
+            model = torch.load(MODEL_PATH)
+            print(f"resuming from existing model at {MODEL_PATH}")
+            return model
+        except FileNotFoundError:
+            pass
+    print("constructing new model")
+    conf = GPTConfig(
+        dataset.vocab_size, dataset.block_size, n_layer=2, n_head=4, n_embd=128
+    )
+    model = GPT(conf)
+    return model
+
+
+def train():
+    train_dataset = ReorderDataset("train", 10000)
+    test_dataset = ReorderDataset("test", 1000)
+    model = get_model(train_dataset, rebuild=True)
+    epochs = 50
+    conf = TrainerConfig(
+        max_epochs=epochs,
+        batch_size=512,
+        learning_rate=6e-4,
+        lr_decay=True,
+        warmup_tokens=1024,
+        final_tokens=epochs * len(train_dataset) * len(TOKENS),
+        num_workers=4,
+    )
+    trainer = Trainer(model, train_dataset, test_dataset, conf)
+    trainer.train()
+    torch.save(self.model, MODEL_PATH)
 
 
 if __name__ == "__main__":
-    train_dataset = ReorderDataset("train", 10000)
-    print(train_dataset[0])
+    train()
