@@ -57,32 +57,35 @@ class Expression:
             answer += self.left.preorder_tokens()
         if self.right is not None:
             answer += self.right.preorder_tokens()
+        return answer
 
     def inorder_tokens(self):
         "An inorder traversal of the tokens in this expression."
         answer = []
         if self.left is not None:
-            answer += self.left.preorder_tokens()
+            answer += self.left.inorder_tokens()
         answer.append(self.token)
         if self.right is not None:
-            answer += self.right.preorder_tokens()
+            answer += self.right.inorder_tokens()
+        return answer
 
 
-class ExpressionSet(Dataset):
+class ReorderDataset(Dataset):
     """
     A dataset for preorder->inorder rewrite problems.
     """
 
-    def __init__(self, size, split):
+    def __init__(self, split, size):
         """
         size is how many are in this specific dataset.
         split can be "train" or "test".
         """
         self.expressions = []
         for i in range(size):
-            random.seed(f"{split}{i}")
+            random.seed(f"{split}-{i}")
             expr = Expression(EXPRESSION_SIZE)
             self.expressions.append(expr)
+        print(f"{split} dataset of size {size} created")
 
     def __len__(self):
         return len(self.expressions)
@@ -91,6 +94,19 @@ class ExpressionSet(Dataset):
         expr = self.expressions[index]
         preorder = [TOKENS.index(token) for token in expr.preorder_tokens()]
         inorder = [TOKENS.index(token) for token in expr.inorder_tokens()]
-        full_vector = preorder + inorder
 
-        # TODO: masking etc
+        # Predicting does not use the last element
+        input_items = preorder + inorder[:-1]
+
+        # Mask loss on the output vector with -100's, for the parts we aren't trying to predict.
+        output_items = [-1] * (len(preorder) - 1) + inorder
+
+        # Convert to tensor
+        input_tensor = torch.tensor(input_items, dtype=torch.long)
+        output_tensor = torch.tensor(output_items, dtype=torch.long)
+        return input_tensor, output_tensor
+
+
+if __name__ == "__main__":
+    train_dataset = ReorderDataset("train", 10000)
+    print(train_dataset[0])
