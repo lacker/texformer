@@ -5,12 +5,15 @@
 import os
 import random
 import torch
+
+from mingpt.model import GPT, GPTConfig
+from mingpt.trainer import Trainer, TrainerConfig
 from mingpt.utils import set_seed
 from torch.utils.data import Dataset
-from torch.utils.tensorboard import SummaryWriter
 
 DIR = os.path.dirname(os.path.realpath(__file__))
 TMP = os.path.join(DIR, "tmp")
+MODEL_PATH = os.path.join(TMP, "reorder.pt")
 
 # Types of expressions
 OP = "op"
@@ -105,6 +108,21 @@ class ReorderDataset(Dataset):
         input_tensor = torch.tensor(input_items, dtype=torch.long)
         output_tensor = torch.tensor(output_items, dtype=torch.long)
         return input_tensor, output_tensor
+
+
+def get_model(dataset):
+    set_seed(42)
+    try:
+        model = torch.load(MODEL_PATH)
+        print(f"resuming from existing model at {MODEL_PATH}")
+        return model
+    except FileNotFoundError:
+        print("constructing new model")
+        conf = GPTConfig(
+            dataset.vocab_size, dataset.block_size, n_layer=2, n_head=4, n_embd=128
+        )
+        model = GPT(conf)
+        return model
 
 
 if __name__ == "__main__":
