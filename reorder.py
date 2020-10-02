@@ -5,7 +5,8 @@
 import os
 import random
 import torch
-from torch.utils.data import DataLoader, Dataset
+from mingpt.utils import set_seed
+from torch.utils.data import Dataset
 from torch.utils.tensorboard import SummaryWriter
 
 DIR = os.path.dirname(os.path.realpath(__file__))
@@ -21,13 +22,14 @@ ATOMS = ["1", "2", "3"]
 TOKENS = OPS + ATOMS
 
 # How long our input and output formulas will be
-SIZE = 7
+EXPRESSION_SIZE = 7
 
 
 class Expression:
     def __init__(self, size):
         """
         Size includes internal nodes.
+        For nondeterminism, seed before constructing.
         """
         if size % 2 == 0:
             raise ValueError(f"expressions must have odd size.")
@@ -68,32 +70,27 @@ class Expression:
 
 class ExpressionSet(Dataset):
     """
-    A dataset for manipulating trees of tokens.
-    We just generate new ones on the fly whenever we want expressions.
+    A dataset for preorder->inorder rewrite problems.
     """
 
-    def __init__(self, size):
-        self.size = size
-        batch_size = 10
-        self.loader = DataLoader(self, batch_size=batch_size, pin_memory=True)
-
-    def batches(self):
+    def __init__(self, size, split):
         """
-        Iterate over (batch, preorder, inorder) tuples, with orders mapped onto cuda structures.
+        size is how many are in this specific dataset.
+        split can be "train" or "test".
         """
-        for i, data in enumerate(self.loader):
-            batch = i + 1
-            preorder, inorder = data
-            preorder, inorder = preorder.cuda(), labels.cuda()
-            yield batch, preorder, inorder
+        self.expressions = []
+        for i in range(size):
+            random.seed(f"{split}{i}")
+            expr = Expression(EXPRESSION_SIZE)
+            self.expressions.append(expr)
 
     def __len__(self):
-        return self.size
+        return len(self.expressions)
 
     def __getitem__(self, index):
-        expr = Expression(SIZE)
+        expr = self.expressions[index]
         preorder = [TOKENS.index(token) for token in expr.preorder_tokens()]
         inorder = [TOKENS.index(token) for token in expr.inorder_tokens()]
-        preorder_tensor = torch.tensor(preorder, dtype=torch.long)
-        inorder_tensor = torch.tensor(inorder, dtype=torch.long)
-        return preorder_tensor, inorder_tensor
+        full_vector = preorder + inorder
+
+        # TODO: masking etc
