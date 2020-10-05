@@ -83,6 +83,7 @@ class ReorderDataset(Dataset):
         size is how many are in this specific dataset.
         split can be "train" or "test".
         """
+        self.vocab_size = len(TOKENS)
         self.expressions = []
         for i in range(size):
             random.seed(f"{split}-{i}")
