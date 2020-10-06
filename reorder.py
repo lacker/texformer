@@ -32,8 +32,16 @@ def cast_token(x):
     if type(x) == str:
         return x
     if type(x) == int:
-        return TOKEN[x]
+        return TOKENS[x]
     raise ValueError(f"cannot cast_token on {x}")
+
+
+def cast_int(token):
+    if type(token) == int:
+        return token
+    if type(token) == str:
+        return TOKENS.index(token)
+    raise ValueError(f"cannot cast_int on {token}")
 
 
 class Expression:
@@ -42,8 +50,8 @@ class Expression:
         if left is not None:
             assert right is not None
             self.node_type = OP
-            self.size += left.size()
-            self.size += right.size()
+            self.size += left.size
+            self.size += right.size
         else:
             self.node_type = ATOM
         self.left = left
@@ -58,8 +66,6 @@ class Expression:
         """
         if size % 2 == 0:
             raise ValueError(f"expressions must have odd size.")
-
-        self.size = size
         if size == 1:
             return Expression(random.choice(ATOMS))
 
@@ -179,16 +185,15 @@ def train():
     print(f"saved model to {MODEL_PATH}")
 
 
-def test():
-    test_dataset = ReorderDataset("test", 1000)
-    model = get_model(train_dataset, rebuild=False)
-    loader = DataLoader(dataset, batch_size=32)
-    for b, (x, y) in enumerate(loader):
-        x = x.to(torch.cuda.current_device())
-        input_part = x[:, :EXPRESSION_SIZE]
-        input_and_output_part = sample(model, input_part, EXPRESSION_SIZE)
-        output_part = input_and_output_part[:, -EXPRESSION_SIZE:]
-        # TODO: parse things into expressions
+def run_one(model, input_tokens):
+    input_ints = list(map(cast_int, input_tokens))
+    input_tensor = torch.tensor([input_ints], dtype=torch.long).to(
+        torch.cuda.current_device()
+    )
+    full_tensor = sample(model, input_tensor, EXPRESSION_SIZE)
+    full_ints = list(map(int, full_tensor[0]))
+    output_ints = full_ints[-EXPRESSION_SIZE:]
+    return "".join(map(cast_token, output_ints))
 
 
 if __name__ == "__main__":
