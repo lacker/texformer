@@ -84,6 +84,7 @@ class ReorderDataset(Dataset):
         split can be "train" or "test".
         """
         self.vocab_size = len(TOKENS)
+        self.block_size = 2 * EXPRESSION_SIZE
         self.expressions = []
         for i in range(size):
             random.seed(f"{split}-{i}")
