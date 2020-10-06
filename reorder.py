@@ -104,7 +104,7 @@ class ReorderDataset(Dataset):
         input_items = preorder + inorder[:-1]
 
         # Mask loss on the output vector with -100's, for the parts we aren't trying to predict.
-        output_items = [-1] * (len(preorder) - 1) + inorder
+        output_items = [-100] * (len(preorder) - 1) + inorder
 
         # Convert to tensor
         input_tensor = torch.tensor(input_items, dtype=torch.long)
@@ -133,7 +133,7 @@ def train():
     train_dataset = ReorderDataset("train", 10000)
     test_dataset = ReorderDataset("test", 1000)
     model = get_model(train_dataset, rebuild=True)
-    epochs = 50
+    epochs = 30
     conf = TrainerConfig(
         max_epochs=epochs,
         batch_size=512,
@@ -145,7 +145,8 @@ def train():
     )
     trainer = Trainer(model, train_dataset, test_dataset, conf)
     trainer.train()
-    torch.save(self.model, MODEL_PATH)
+    torch.save(model, MODEL_PATH)
+    print(f"saved model to {MODEL_PATH}")
 
 
 if __name__ == "__main__":
