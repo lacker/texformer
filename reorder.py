@@ -28,6 +28,14 @@ TOKENS = OPS + ATOMS
 EXPRESSION_SIZE = 7
 
 
+def cast_token(x):
+    if type(x) == str:
+        return x
+    if type(x) == int:
+        return TOKEN[x]
+    raise ValueError(f"cannot cast_token on {x}")
+
+
 class Expression:
     def __init__(self, token, left=None, right=None):
         self.size = 1
@@ -43,7 +51,7 @@ class Expression:
         self.token = token
 
     @staticmethod
-    def random(self, size):
+    def random(size):
         """
         Size includes internal nodes.
         For nondeterminism, seed before constructing.
@@ -62,6 +70,18 @@ class Expression:
         left = Expression.random(left_size)
         right = Expression.random(right_size)
         return Expression(token, left=left, right=right)
+
+    @staticmethod
+    def parse_preorder(tokens):
+        """
+        Returns a tuple of (expression, rest).
+        """
+        token, rest = cast_token(tokens[0]), tokens[1:]
+        if token in ATOMS:
+            return Expression(token), rest
+        left, rest = Expression.parse_preorder(rest)
+        right, rest = Expression.parse_preorder(rest)
+        return Expression(token, left=left, right=right), rest
 
     def preorder_tokens(self):
         "A preorder traversal of the tokens in this expression."
