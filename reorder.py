@@ -8,8 +8,8 @@ import torch
 
 from mingpt.model import GPT, GPTConfig
 from mingpt.trainer import Trainer, TrainerConfig
-from mingpt.utils import set_seed
-from torch.utils.data import Dataset
+from mingpt.utils import sample, set_seed
+from torch.utils.data import DataLoader, Dataset
 
 DIR = os.path.dirname(os.path.realpath(__file__))
 TMP = os.path.join(DIR, "tmp")
@@ -29,7 +29,21 @@ EXPRESSION_SIZE = 7
 
 
 class Expression:
-    def __init__(self, size):
+    def __init__(self, token, left=None, right=None):
+        self.size = 1
+        if left is not None:
+            assert right is not None
+            self.node_type = OP
+            self.size += left.size()
+            self.size += right.size()
+        else:
+            self.node_type = ATOM
+        self.left = left
+        self.right = right
+        self.token = token
+
+    @staticmethod
+    def random(self, size):
         """
         Size includes internal nodes.
         For nondeterminism, seed before constructing.
@@ -39,19 +53,15 @@ class Expression:
 
         self.size = size
         if size == 1:
-            self.node_type = ATOM
-            self.token = random.choice(ATOMS)
-            self.left = None
-            self.right = None
-            return
+            return Expression(random.choice(ATOMS))
 
         left_size = random.randrange(1, size, 2)
         right_size = size - 1 - left_size
 
-        self.node_type = OP
-        self.token = random.choice(OPS)
-        self.left = Expression(left_size)
-        self.right = Expression(right_size)
+        token = random.choice(OPS)
+        left = Expression.random(left_size)
+        right = Expression.random(right_size)
+        return Expression(token, left=left, right=right)
 
     def preorder_tokens(self):
         "A preorder traversal of the tokens in this expression."
@@ -88,7 +98,7 @@ class ReorderDataset(Dataset):
         self.expressions = []
         for i in range(size):
             random.seed(f"{split}-{i}")
-            expr = Expression(EXPRESSION_SIZE)
+            expr = Expression.random(EXPRESSION_SIZE)
             self.expressions.append(expr)
         print(f"{split} dataset of size {size} created")
 
@@ -147,6 +157,18 @@ def train():
     trainer.train()
     torch.save(model, MODEL_PATH)
     print(f"saved model to {MODEL_PATH}")
+
+
+def test():
+    test_dataset = ReorderDataset("test", 1000)
+    model = get_model(train_dataset, rebuild=False)
+    loader = DataLoader(dataset, batch_size=32)
+    for b, (x, y) in enumerate(loader):
+        x = x.to(torch.cuda.current_device())
+        input_part = x[:, :EXPRESSION_SIZE]
+        input_and_output_part = sample(model, input_part, EXPRESSION_SIZE)
+        output_part = input_and_output_part[:, -EXPRESSION_SIZE:]
+        # TODO: parse things into expressions
 
 
 if __name__ == "__main__":
