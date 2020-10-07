@@ -20,12 +20,12 @@ OP = "op"
 ATOM = "atom"
 
 # The different tokens
-OPS = ["+"]
-ATOMS = ["1", "2", "3"]
+OPS = ["+", "*"]
+ATOMS = ["1", "2", "3", "4"]
 TOKENS = OPS + ATOMS
 
 # How long our input and output formulas will be
-EXPRESSION_SIZE = 7
+EXPRESSION_SIZE = 15
 
 
 def cast_token(x):
@@ -108,10 +108,20 @@ class Expression:
             answer += self.right.inorder_tokens()
         return answer
 
+    def postorder_tokens(self):
+        "A postorder traversal of the tokens in this expression."
+        answer = []
+        if self.left is not None:
+            answer += self.left.inorder_tokens()
+        if self.right is not None:
+            answer += self.right.inorder_tokens()
+        answer.append(self.token)
+        return answer
+
 
 class ReorderDataset(Dataset):
     """
-    A dataset for preorder->inorder rewrite problems.
+    A dataset for preorder->postorder rewrite problems.
     """
 
     def __init__(self, split, size):
@@ -134,13 +144,13 @@ class ReorderDataset(Dataset):
     def __getitem__(self, index):
         expr = self.expressions[index]
         preorder = [TOKENS.index(token) for token in expr.preorder_tokens()]
-        inorder = [TOKENS.index(token) for token in expr.inorder_tokens()]
+        postorder = [TOKENS.index(token) for token in expr.postorder_tokens()]
 
         # Predicting does not use the last element
-        input_items = preorder + inorder[:-1]
+        input_items = preorder + postorder[:-1]
 
         # Mask loss on the output vector with -100's, for the parts we aren't trying to predict.
-        output_items = [-100] * (len(preorder) - 1) + inorder
+        output_items = [-100] * (len(preorder) - 1) + postorder
 
         # Convert to tensor
         input_tensor = torch.tensor(input_items, dtype=torch.long)
