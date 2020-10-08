@@ -28,6 +28,10 @@ TOKENS = OPS + ATOMS
 # How long our input and output formulas will be
 EXPRESSION_SIZE = 15
 
+# Block size is the size of input plus output
+VOCAB_SIZE = len(TOKENS)
+BLOCK_SIZE = 2 * EXPRESSION_SIZE
+
 
 def cast_token(x):
     if type(x) == str:
@@ -125,16 +129,14 @@ class ReorderDataset(Dataset):
     A dataset for preorder->postorder rewrite problems.
     """
 
-    def __init__(self, split, size, randomize=False):
+    def __init__(self, split, size, deterministic=False):
         """
         size is how many are in this specific dataset.
         split can be "train" or "test".
         """
-        self.vocab_size = len(TOKENS)
-        self.block_size = 2 * EXPRESSION_SIZE
         self.expressions = []
         for i in range(size):
-            if not randomize:
+            if deterministic:
                 random.seed(f"{split}-{i}")
             expr = Expression.random(EXPRESSION_SIZE)
             self.expressions.append(expr)
@@ -160,7 +162,7 @@ class ReorderDataset(Dataset):
         return input_tensor, output_tensor
 
 
-def get_model(dataset, rebuild=False):
+def get_model(rebuild=False):
     set_seed(42)
     if not rebuild:
         try:
@@ -170,9 +172,7 @@ def get_model(dataset, rebuild=False):
         except FileNotFoundError:
             pass
     print("constructing new model")
-    conf = GPTConfig(
-        dataset.vocab_size, dataset.block_size, n_layer=2, n_head=4, n_embd=128
-    )
+    conf = GPTConfig(VOCAB_SIZE, BLOCK_SIZE, n_layer=2, n_head=4, n_embd=128)
     model = GPT(conf)
     return model
 
@@ -180,7 +180,7 @@ def get_model(dataset, rebuild=False):
 def train():
     train_dataset = ReorderDataset("train", 10000)
     test_dataset = ReorderDataset("test", 1000)
-    model = get_model(train_dataset)
+    model = get_model()
     epochs = 100
     conf = TrainerConfig(
         max_epochs=epochs,
@@ -195,6 +195,7 @@ def train():
     trainer.train()
     torch.save(model, MODEL_PATH)
     print(f"saved model to {MODEL_PATH}")
+    return model
 
 
 def run_one(model, input_tokens):
@@ -205,8 +206,27 @@ def run_one(model, input_tokens):
     full_tensor = sample(model, input_tensor, EXPRESSION_SIZE)
     full_ints = list(map(int, full_tensor[0]))
     output_ints = full_ints[-EXPRESSION_SIZE:]
-    return "".join(map(cast_token, output_ints))
+    return list(map(cast_token, output_ints))
+
+
+def evaluate(model):
+    correct = 0
+    total = 0
+    for _ in range(10000):
+        expr = Expression.random(EXPRESSION_SIZE)
+        input_str = "".join(expr.preorder_tokens())
+        actual_output = "".join(run_one(model, expr.preorder_tokens()))
+        expected_output = "".join(expr.postorder_tokens())
+        total += 1
+        if actual_output == expected_output:
+            correct += 1
+        else:
+            print(
+                f"mapped {input_str} to {actual_output} but expected {expected_output}"
+            )
+    print(f"got {correct}/{total} = {correct/total:.3f}% correct")
 
 
 if __name__ == "__main__":
-    train()
+    model = train()
+    evaluate(model)
