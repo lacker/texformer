@@ -221,9 +221,9 @@ def evaluate(model):
         if actual_output == expected_output:
             correct += 1
         else:
-            print(
-                f"mapped {input_str} to {actual_output} but expected {expected_output}"
-            )
+            print(f"error on {input_str} :")
+            print(f"    actual:    {actual_output}")
+            print(f"    expected:  {expected_output}")
     print(f"got {correct}/{total} = {correct/total:.3f}% correct")
 
 
