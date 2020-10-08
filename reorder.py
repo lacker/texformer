@@ -4,6 +4,7 @@
 
 import os
 import random
+import time
 import torch
 
 from mingpt.model import GPT, GPTConfig
@@ -124,7 +125,7 @@ class ReorderDataset(Dataset):
     A dataset for preorder->postorder rewrite problems.
     """
 
-    def __init__(self, split, size):
+    def __init__(self, split, size, randomize=False):
         """
         size is how many are in this specific dataset.
         split can be "train" or "test".
@@ -133,7 +134,8 @@ class ReorderDataset(Dataset):
         self.block_size = 2 * EXPRESSION_SIZE
         self.expressions = []
         for i in range(size):
-            random.seed(f"{split}-{i}")
+            if not randomize:
+                random.seed(f"{split}-{i}")
             expr = Expression.random(EXPRESSION_SIZE)
             self.expressions.append(expr)
         print(f"{split} dataset of size {size} created")
@@ -178,8 +180,8 @@ def get_model(dataset, rebuild=False):
 def train():
     train_dataset = ReorderDataset("train", 10000)
     test_dataset = ReorderDataset("test", 1000)
-    model = get_model(train_dataset, rebuild=True)
-    epochs = 30
+    model = get_model(train_dataset)
+    epochs = 100
     conf = TrainerConfig(
         max_epochs=epochs,
         batch_size=512,
