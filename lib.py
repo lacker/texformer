@@ -5,6 +5,7 @@ import pdf2image
 import PIL
 import random
 import re
+import string
 import subprocess
 import torch
 from torch import nn
@@ -25,6 +26,8 @@ INFIX = "infix"
 ATOMS = ["x", "y", "z", "a", "b", "c", "1", "2", "3", "4", "\\alpha", "\\beta"]
 PREFIX_OP = "\\frac"
 INFIX_OPS = [" \\cdot ", "^", "_", "+", "-"]
+
+LETTERS = list(string.ascii_letters)
 
 
 class Formula:
@@ -96,16 +99,22 @@ def generate_formula(n):
     return Formula(10)
 
 
+def generate_word(n):
+    random.seed(n)
+    letters = [random.choice(LETTERS) for _ in range(10)]
+    return "".join(letters)
+
+
 def generate_pdf(n):
     """
-    Creates a pdf which is experimentally of dimension at most 465 x 105.
+    Creates a {n}.pdf file in tmp.
     """
     pdf_filename = os.path.join(TMP, f"{n}.pdf")
     if os.path.isfile(pdf_filename):
         # It already has been generated.
         return
 
-    tex = TEMPLATE % generate_formula(n)
+    tex = TEMPLATE % generate_word(n)
     write(tex, n)
 
 
@@ -182,4 +191,5 @@ def normal(name):
 
 
 if __name__ == "__main__":
-    pass
+    for i in range(1000):
+        generate_pdf(i)
