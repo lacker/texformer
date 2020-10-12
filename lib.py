@@ -153,6 +153,24 @@ def open_pdf(name):
     return pages[0]
 
 
+def check_size(n):
+    """
+    Checks the size of generated pdfs up to n.
+    """
+    widths = []
+    heights = []
+    for i in range(n):
+        generate_pdf(n)
+        image = open_pdf(n)
+        widths.append(image.width)
+        heights.append(image.height)
+        print(f"done with {n}")
+    widths.sort()
+    heights.sort()
+    print("top widths:", widths[-10:])
+    print("top heights:", heights[-10:])
+
+
 # Parameters for image normalization.
 # The "input" parameters are the rectangle we read from the pdf.
 # The downscaling is how much we scale before putting it into the neural network.
@@ -191,5 +209,4 @@ def normal(name):
 
 
 if __name__ == "__main__":
-    for i in range(1000):
-        generate_pdf(i)
+    check_size(10000)
