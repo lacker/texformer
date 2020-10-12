@@ -164,7 +164,7 @@ def check_size(n):
         image = open_pdf(n)
         widths.append(image.width)
         heights.append(image.height)
-        print(f"done with {n}")
+        print(f"done with {i}")
     widths.sort()
     heights.sort()
     print("top widths:", widths[-10:])
