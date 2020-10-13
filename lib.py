@@ -28,6 +28,7 @@ PREFIX_OP = "\\frac"
 INFIX_OPS = [" \\cdot ", "^", "_", "+", "-"]
 
 LETTERS = list(string.ascii_letters)
+WORD_LENGTH = 10
 
 
 class Formula:
@@ -101,7 +102,7 @@ def generate_formula(n):
 
 def generate_word(n):
     random.seed(n)
-    letters = [random.choice(LETTERS) for _ in range(10)]
+    letters = [random.choice(LETTERS) for _ in range(WORD_LENGTH)]
     return "".join(letters)
 
 
@@ -160,8 +161,8 @@ def check_size(n):
     widths = []
     heights = []
     for i in range(n):
-        generate_pdf(n)
-        image = open_pdf(n)
+        generate_pdf(i)
+        image = open_pdf(i)
         widths.append(image.width)
         heights.append(image.height)
         print(f"done with {i}")
@@ -174,10 +175,10 @@ def check_size(n):
 # Parameters for image normalization.
 # The "input" parameters are the rectangle we read from the pdf.
 # The downscaling is how much we scale before putting it into the neural network.
-INPUT_WIDTH = 384
-INPUT_HEIGHT = 64
-WIDTH = 192
-HEIGHT = 32
+INPUT_WIDTH = 256
+INPUT_HEIGHT = 32
+WIDTH = 128
+HEIGHT = 16
 
 
 def normal(name):
@@ -209,4 +210,5 @@ def normal(name):
 
 
 if __name__ == "__main__":
-    check_size(10000)
+    for i in range(10000):
+        normal(i)
