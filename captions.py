@@ -91,7 +91,7 @@ def train():
     tokens_per_epoch = len(train_dataset) * BLOCK_SIZE
     conf = TrainerConfig(
         max_epochs=epochs,
-        batch_size=512,
+        batch_size=128,
         learning_rate=6e-4,
         lr_decay=True,
         warmup_tokens=tokens_per_epoch,
