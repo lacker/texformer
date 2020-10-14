@@ -1,9 +1,15 @@
 #!/usr/bin/env python
-from datetime import timedelta
+
 import os
 import time
+import torch
 
-from lib import *
+from mingpt.model import GPT, GPTConfig
+from mingpt.trainer import Trainer, TrainerConfig
+from mingpt.utils import set_seed
+from torch.utils.data import Dataset
+
+from lib import generate_word, normal
 
 EMBEDDING_DIM = 6
 HIDDEN_DIM = 6
