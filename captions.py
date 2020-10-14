@@ -9,7 +9,7 @@ from mingpt.trainer import Trainer, TrainerConfig
 from mingpt.utils import set_seed
 from torch.utils.data import Dataset
 
-from lib import generate_word, normal
+from lib import *
 
 EMBEDDING_DIM = 6
 HIDDEN_DIM = 6
@@ -19,7 +19,8 @@ MODEL_PATH = os.path.join(TMP, f"{RUN_NAME}.pt")
 # For the transformer
 INPUT_SIZE = WIDTH * HEIGHT
 OUTPUT_SIZE = WORD_LENGTH
-VOCAB_SIZE = 256
+VOCAB_SIZE = 64
+assert VOCAB_SIZE >= len(LETTERS)
 BLOCK_SIZE = INPUT_SIZE + OUTPUT_SIZE
 
 
@@ -43,7 +44,9 @@ class CaptionDataset(Dataset):
         word = generate_word(n)
         letters = [LETTERS.index(letter) for letter in word]
         image = normal(n)
-        pixels = list(image.getdata())
+        raw_pixels = list(image.getdata())
+        shade_scale = VOCAB_SIZE / 256
+        pixels = [int(shade_scale * rp) for rp in raw_pixels]
 
         # Predicting does not use the last element
         input_items = letters + pixels[:-1]

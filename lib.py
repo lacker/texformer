@@ -177,8 +177,8 @@ def check_size(n):
 # The downscaling is how much we scale before putting it into the neural network.
 INPUT_WIDTH = 256
 INPUT_HEIGHT = 32
-WIDTH = 128
-HEIGHT = 16
+WIDTH = 64
+HEIGHT = 8
 
 
 def normal(name):
