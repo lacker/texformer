@@ -22,18 +22,21 @@ class CaptionDataset(Dataset):
     A dataset for recognizing a "word" in an image.
     """
 
-    def __init__(self, size=10000):
+    def __init__(self, size, offset=0):
         self.size = size
+        self.offset = offset
         self.to_tensor = transforms.ToTensor()
 
     def __len__(self):
         return self.size
 
     def __getitem__(self, index):
+        n = self.offset + index
+
         # Get letters and pixels as lists of ints.
-        word = generate_word(index)
+        word = generate_word(n)
         letters = [LETTERS.index(letter) for letter in word]
-        image = normal(index)
+        image = normal(n)
         pixels = list(image.getdata())
 
         # Predicting does not use the last element
@@ -61,3 +64,36 @@ def get_model(rebuild=False):
     conf = GPTConfig(VOCAB_SIZE, BLOCK_SIZE, n_layer=2, n_head=4, n_embd=128)
     model = GPT(conf)
     return model
+
+
+def get_train_dataset():
+    return CaptionDataset(9000)
+
+
+def get_test_dataset():
+    return CaptionDataset(1000, offset=9000)
+
+
+def train():
+    train_dataset = get_train_dataset()
+    test_dataset = get_test_dataset()
+    model = get_model()
+    epochs = 100
+    tokens_per_epoch = len(train_dataset) * BLOCK_SIZE
+    conf = TrainerConfig(
+        max_epochs=epochs,
+        batch_size=512,
+        learning_rate=6e-4,
+        lr_decay=True,
+        warmup_tokens=tokens_per_epoch,
+        final_tokens=epochs * tokens_per_epoch,
+        ckpt_path=MODEL_PATH,
+        num_workers=4,
+    )
+    trainer = Trainer(model, train_dataset, test_dataset, conf)
+    trainer.train()
+    return model
+
+
+if __name__ == "__main__":
+    train()

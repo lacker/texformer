@@ -182,6 +182,7 @@ def train():
     test_dataset = ReorderDataset("test", 1000)
     model = get_model()
     epochs = 100
+    # NOTE: I think final_tokens is set wrong
     conf = TrainerConfig(
         max_epochs=epochs,
         batch_size=512,
