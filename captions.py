@@ -93,7 +93,7 @@ def train():
         max_epochs=epochs,
         batch_size=128,
         learning_rate=3e-4,
-        lr_decay=True,
+        lr_decay=False,
         warmup_tokens=tokens_per_epoch,
         final_tokens=epochs * tokens_per_epoch,
         ckpt_path=MODEL_PATH,
