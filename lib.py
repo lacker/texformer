@@ -27,7 +27,7 @@ ATOMS = ["x", "y", "z", "a", "b", "c", "1", "2", "3", "4", "\\alpha", "\\beta"]
 PREFIX_OP = "\\frac"
 INFIX_OPS = [" \\cdot ", "^", "_", "+", "-"]
 
-LETTERS = list(string.ascii_letters)
+LETTERS = list("ABCDEFGHIJKLMNOP")
 WORD_LENGTH = 10
 
 
