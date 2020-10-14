@@ -211,4 +211,6 @@ def normal(name):
 
 if __name__ == "__main__":
     for i in range(10000):
+        generate_pdf(i)
         normal(i)
+        print(f"normalized {i}")
