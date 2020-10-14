@@ -96,11 +96,12 @@ def train():
         lr_decay=False,
         warmup_tokens=tokens_per_epoch,
         final_tokens=epochs * tokens_per_epoch,
-        ckpt_path=MODEL_PATH,
         num_workers=4,
     )
     trainer = Trainer(model, train_dataset, test_dataset, conf)
     trainer.train()
+    torch.save(model, MODEL_PATH)
+    print(f"saved model to {MODEL_PATH}")
     return model
 
 
