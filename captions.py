@@ -6,7 +6,7 @@ import torch
 
 from mingpt.model import GPT, GPTConfig
 from mingpt.trainer import Trainer, TrainerConfig
-from mingpt.utils import set_seed
+from mingpt.utils import sample, set_seed
 from torch.utils.data import Dataset
 
 from lib import *
@@ -49,10 +49,10 @@ class CaptionDataset(Dataset):
         pixels = [int(shade_scale * rp) for rp in raw_pixels]
 
         # Predicting does not use the last element
-        input_items = letters + pixels[:-1]
+        input_items = pixels + letters[:-1]
 
         # Mask loss on the output vector with -100's for the parts we aren't predicting
-        output_items = [-100] * (len(letters) - 1) + pixels
+        output_items = [-100] * (len(pixels) - 1) + letters
 
         # Convert to tensor
         input_tensor = torch.tensor(input_items, dtype=torch.long)
@@ -103,6 +103,14 @@ def train():
     torch.save(model, MODEL_PATH)
     print(f"saved model to {MODEL_PATH}")
     return model
+
+
+def run_one(model, input_tensor):
+    input_cuda = input_tensor.to(torch.cuda.current_device())
+    full_tensor = sample(model, input_tensor, OUTPUT_SIZE)
+    full_ints = list(map(int, full_tensor[0]))
+    output_ints = full_ints[-OUTPUT_SIZE:]
+    return output_ints
 
 
 if __name__ == "__main__":
