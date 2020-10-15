@@ -24,6 +24,14 @@ assert VOCAB_SIZE >= len(LETTERS)
 BLOCK_SIZE = INPUT_SIZE + OUTPUT_SIZE
 
 
+def get_pixels(n):
+    image = normal(n)
+    raw_pixels = list(image.getdata())
+    shade_scale = VOCAB_SIZE / 256
+    pixels = [int(shade_scale * rp) for rp in raw_pixels]
+    return pixels
+
+
 class CaptionDataset(Dataset):
     """
     A dataset for recognizing a "word" in an image.
@@ -43,10 +51,7 @@ class CaptionDataset(Dataset):
         # Get letters and pixels as lists of ints.
         word = generate_word(n)
         letters = [LETTERS.index(letter) for letter in word]
-        image = normal(n)
-        raw_pixels = list(image.getdata())
-        shade_scale = VOCAB_SIZE / 256
-        pixels = [int(shade_scale * rp) for rp in raw_pixels]
+        pixels = get_pixels(n)
 
         # Predicting does not use the last element
         input_items = pixels + letters[:-1]
@@ -105,12 +110,16 @@ def train():
     return model
 
 
-def run_one(model, input_tensor):
-    input_cuda = input_tensor.to(torch.cuda.current_device())
+def run_one(model, n):
+    "Returns the actual word produced."
+    input_ints = get_pixels(n)
+    input_tensor = torch.tensor([input_ints], dtype=torch.long).to(
+        torch.cuda.current_device()
+    )
     full_tensor = sample(model, input_tensor, OUTPUT_SIZE)
     full_ints = list(map(int, full_tensor[0]))
     output_ints = full_ints[-OUTPUT_SIZE:]
-    return output_ints
+    return "".join(LETTERS[i] for i in output_ints)
 
 
 if __name__ == "__main__":
