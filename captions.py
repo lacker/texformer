@@ -122,5 +122,22 @@ def run_one(model, n):
     return "".join(LETTERS[i] for i in output_ints)
 
 
+def evaluate():
+    model = get_model()
+    correct = 0
+    total = 0
+    for n in range(9000, 10000):
+        correct_word = generate_word(n)
+        predicted_word = run_one(model, n)
+        total += 1
+        if correct_word == predicted_word:
+            correct += 1
+        else:
+            print(f"error on {n} :")
+            print(f"    prediction:  {predicted_word}")
+            print(f"    correct:     {correct_word}")
+    print(f"got {correct}/{total} = {correct/total:.3f}% correct")
+
+
 if __name__ == "__main__":
-    train()
+    evaluate()
