@@ -19,9 +19,13 @@ MODEL_PATH = os.path.join(TMP, f"{RUN_NAME}.pt")
 # For the transformer
 INPUT_SIZE = WIDTH * HEIGHT
 OUTPUT_SIZE = WORD_LENGTH
-VOCAB_SIZE = 16
+VOCAB_SIZE = 64
 assert VOCAB_SIZE >= len(LETTERS)
 BLOCK_SIZE = INPUT_SIZE + OUTPUT_SIZE
+
+DATA_SIZE = 100000
+TRAIN_SIZE = int(0.9 * DATA_SIZE)
+TEST_SIZE = DATA_SIZE - TRAIN_SIZE
 
 
 def get_pixels(n):
@@ -81,23 +85,23 @@ def get_model(rebuild=False):
 
 
 def get_train_dataset():
-    return CaptionDataset(9000)
+    return CaptionDataset(TRAIN_SIZE)
 
 
 def get_test_dataset():
-    return CaptionDataset(1000, offset=9000)
+    return CaptionDataset(TEST_SIZE, offset=TRAIN_SIZE)
 
 
 def train():
     train_dataset = get_train_dataset()
     test_dataset = get_test_dataset()
     model = get_model()
-    epochs = 100
+    epochs = 20
     tokens_per_epoch = len(train_dataset) * BLOCK_SIZE
     conf = TrainerConfig(
         max_epochs=epochs,
         batch_size=128,
-        learning_rate=3e-4,
+        learning_rate=3e-5,
         lr_decay=False,
         warmup_tokens=tokens_per_epoch,
         final_tokens=epochs * tokens_per_epoch,
@@ -126,7 +130,7 @@ def evaluate():
     model = get_model()
     correct = 0
     total = 0
-    for n in range(9000, 10000):
+    for n in range(TRAIN_SIZE, TRAIN_SIZE + TEST_SIZE):
         correct_word = generate_word(n)
         predicted_word = run_one(model, n)
         total += 1

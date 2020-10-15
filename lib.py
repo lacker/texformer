@@ -27,7 +27,7 @@ ATOMS = ["x", "y", "z", "a", "b", "c", "1", "2", "3", "4", "\\alpha", "\\beta"]
 PREFIX_OP = "\\frac"
 INFIX_OPS = [" \\cdot ", "^", "_", "+", "-"]
 
-LETTERS = list("ABCDEFGHIJKLMNOP")
+LETTERS = list(string.ascii_letters)
 WORD_LENGTH = 10
 
 
@@ -210,7 +210,7 @@ def normal(name):
 
 
 if __name__ == "__main__":
-    for i in range(10000):
+    for i in range(100000):
         generate_pdf(i)
         normal(i)
         print(f"normalized {i}")
