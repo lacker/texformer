@@ -101,7 +101,7 @@ def train():
     conf = TrainerConfig(
         max_epochs=epochs,
         batch_size=128,
-        learning_rate=3e-5,
+        learning_rate=3e-4,
         lr_decay=False,
         warmup_tokens=tokens_per_epoch,
         final_tokens=epochs * tokens_per_epoch,
@@ -144,4 +144,4 @@ def evaluate():
 
 
 if __name__ == "__main__":
-    evaluate()
+    train()
