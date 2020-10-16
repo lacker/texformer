@@ -130,7 +130,7 @@ def evaluate():
     model = get_model()
     correct = 0
     total = 0
-    for n in range(TRAIN_SIZE, TRAIN_SIZE + TEST_SIZE):
+    for n in range(TRAIN_SIZE, TRAIN_SIZE + 1000):
         correct_word = generate_word(n)
         predicted_word = run_one(model, n)
         total += 1
@@ -145,3 +145,4 @@ def evaluate():
 
 if __name__ == "__main__":
     train()
+    evaluate()
