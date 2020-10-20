@@ -38,7 +38,7 @@ WORD_LENGTH = 10
 
 
 class Formula:
-    def __init__(self, size, allow_infix=True):
+    def __init__(self, size, allow_prefix=True):
         """
         Size is just the number of leaf nodes. There are also (size - 1) internal nodes.
         """
@@ -51,17 +51,19 @@ class Formula:
             self.right = None
             return
 
-        left_size = random.randrange(1, size)
-        right_size = size - left_size
-        self.left = Formula(left_size)
-        self.right = Formula(right_size)
-
-        if random.random() < 0.5:
+        if allow_prefix and random.random() < 0.5:
             self.node_type = PREFIX
             self.token = random.choice(PREFIX_OPS)
         else:
             self.node_type = INFIX
             self.token = random.choice(INFIX_OPS)
+
+        suballow = allow_prefix and self.node_type != PREFIX
+
+        left_size = random.randrange(1, size)
+        right_size = size - left_size
+        self.left = Formula(left_size, allow_prefix=suballow)
+        self.right = Formula(right_size, allow_prefix=suballow)
 
     def __str__(self):
         if self.node_type == ATOM:
@@ -230,8 +232,8 @@ def check_size(n):
 # The downscaling is how much we scale before putting it into the neural network.
 INPUT_WIDTH = 272
 INPUT_HEIGHT = 96
-WIDTH = 68
-HEIGHT = 24
+WIDTH = 136
+HEIGHT = 48
 
 
 def normal(name):
@@ -263,4 +265,5 @@ def normal(name):
 
 
 if __name__ == "__main__":
-    map(normal, range(10000))
+    for n in range(10000):
+        normal(n)
