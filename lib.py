@@ -23,9 +23,11 @@ ATOM = "atom"
 PREFIX = "prefix"
 INFIX = "infix"
 
-ATOMS = ["x", "y", "z", "a", "b", "c", "1", "2", "3", "4", "\\alpha", "\\beta"]
+ATOMS = ["x", "y"]
+# ["x", "y", "z", "a", "b", "c", "1", "2", "3", "4", "\\alpha", "\\beta"]
+
 PREFIX_OP = "\\frac"
-INFIX_OPS = [" \\cdot ", "^", "_", "+", "-"]
+INFIX_OPS = ["+"]  # [" \\cdot ", "^", "_", "+", "-"]
 TOKENS = ATOMS + [PREFIX_OP] + INFIX_OPS
 
 NUM_LEAVES = 6
@@ -214,5 +216,4 @@ def normal(name):
 
 
 if __name__ == "__main__":
-    for n in range(10000):
-        normal(n)
+    check_size(10000)
