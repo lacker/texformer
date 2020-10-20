@@ -229,9 +229,9 @@ def check_size(n):
 # The "input" parameters are the rectangle we read from the pdf.
 # The downscaling is how much we scale before putting it into the neural network.
 INPUT_WIDTH = 272
-INPUT_HEIGHT = 80
+INPUT_HEIGHT = 96
 WIDTH = 68
-HEIGHT = 20
+HEIGHT = 24
 
 
 def normal(name):
@@ -263,4 +263,4 @@ def normal(name):
 
 
 if __name__ == "__main__":
-    check_size(10000)
+    map(normal, range(10000))
