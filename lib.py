@@ -26,9 +26,10 @@ INFIX = "infix"
 ATOMS = ["x", "y", "z", "a", "b", "c", "1", "2", "3", "4", "\\alpha", "\\beta"]
 PREFIX_OP = "\\frac"
 INFIX_OPS = [" \\cdot ", "^", "_", "+", "-"]
+TOKENS = ATOMS + [PREFIX_OP] + INFIX_OPS
 
 NUM_LEAVES = 6
-FORMULA_SIZE = 2 * NUM_LEAVES - 1
+FORMULA_LENGTH = 2 * NUM_LEAVES - 1
 
 LETTERS = list(string.ascii_letters)
 WORD_LENGTH = 10
@@ -178,10 +179,10 @@ def check_size(n):
 # Parameters for image normalization.
 # The "input" parameters are the rectangle we read from the pdf.
 # The downscaling is how much we scale before putting it into the neural network.
-INPUT_WIDTH = 256
-INPUT_HEIGHT = 32
-WIDTH = 64
-HEIGHT = 8
+INPUT_WIDTH = 272
+INPUT_HEIGHT = 80
+WIDTH = 68
+HEIGHT = 20
 
 
 def normal(name):
@@ -213,4 +214,5 @@ def normal(name):
 
 
 if __name__ == "__main__":
-    check_size(10000)
+    for n in range(10000):
+        normal(n)

@@ -18,8 +18,8 @@ MODEL_PATH = os.path.join(TMP, f"{RUN_NAME}.pt")
 
 # For the transformer
 INPUT_SIZE = WIDTH * HEIGHT
-OUTPUT_SIZE = WORD_LENGTH
-VOCAB_SIZE = 64
+OUTPUT_SIZE = FORMULA_LENGTH
+VOCAB_SIZE = 32
 assert VOCAB_SIZE >= len(LETTERS)
 BLOCK_SIZE = INPUT_SIZE + OUTPUT_SIZE
 
@@ -37,36 +37,65 @@ def get_pixels(n):
 
 
 class CaptionDataset(Dataset):
-    """
-    A dataset for recognizing a "word" in an image.
-    """
-
-    def __init__(self, size, offset=0):
+    def __init__(self, size, offset):
         self.size = size
         self.offset = offset
-        self.to_tensor = transforms.ToTensor()
 
     def __len__(self):
         return self.size
 
+    def get_lists(self, n):
+        raise NotImplementedError(
+            "get_lists(n) should return (input, output) as lists of ints."
+        )
+
     def __getitem__(self, index):
         n = self.offset + index
-
-        # Get letters and pixels as lists of ints.
-        word = generate_word(n)
-        letters = [LETTERS.index(letter) for letter in word]
-        pixels = get_pixels(n)
+        input_list, output_list = self.get_lists(n)
 
         # Predicting does not use the last element
-        input_items = pixels + letters[:-1]
+        input_items = input_list + output_list[:-1]
 
         # Mask loss on the output vector with -100's for the parts we aren't predicting
-        output_items = [-100] * (len(pixels) - 1) + letters
+        output_items = [-100] * (len(input_list) - 1) + output_list
 
         # Convert to tensor
         input_tensor = torch.tensor(input_items, dtype=torch.long)
         output_tensor = torch.tensor(output_items, dtype=torch.long)
         return input_tensor, output_tensor
+
+
+class WordDataset(CaptionDataset):
+    """
+    A dataset for recognizing a "word" in an image.
+    """
+
+    def __init__(self, size, offset=0):
+        super().__init__(size, offset)
+
+    def __len__(self):
+        return self.size
+
+    def get_lists(self, n):
+        pixels = get_pixels(n)
+        word = generate_word(n)
+        letters = [LETTERS.index(letter) for letter in word]
+        return pixels, letters
+
+
+class FormulaDataset(CaptionDataset):
+    """
+    A dataset for recognizing a formula in an image.
+    """
+
+    def __init__(self, size, offset=0):
+        super().__init__(size, offset)
+
+    def get_lists(self, n):
+        pixels = get_pixels(n)
+        formula = generate_formula(n)
+        tokens = [TOKENS.index(token) for token in formula.preorder()]
+        return pixels, tokens
 
 
 def get_model(rebuild=False):
@@ -85,11 +114,11 @@ def get_model(rebuild=False):
 
 
 def get_train_dataset():
-    return CaptionDataset(TRAIN_SIZE)
+    return FormulaDataset(TRAIN_SIZE)
 
 
 def get_test_dataset():
-    return CaptionDataset(TEST_SIZE, offset=TRAIN_SIZE)
+    return FormulaDataset(TEST_SIZE, offset=TRAIN_SIZE)
 
 
 def train():
@@ -115,7 +144,7 @@ def train():
 
 
 def run_one(model, n):
-    "Returns the actual word produced."
+    "Returns a list of tokens produced."
     input_ints = get_pixels(n)
     input_tensor = torch.tensor([input_ints], dtype=torch.long).to(
         torch.cuda.current_device()
@@ -123,7 +152,7 @@ def run_one(model, n):
     full_tensor = sample(model, input_tensor, OUTPUT_SIZE)
     full_ints = list(map(int, full_tensor[0]))
     output_ints = full_ints[-OUTPUT_SIZE:]
-    return "".join(LETTERS[i] for i in output_ints)
+    return [TOKENS[i] for i in output_ints]
 
 
 def evaluate():
@@ -131,17 +160,17 @@ def evaluate():
     correct = 0
     total = 0
     for n in range(TRAIN_SIZE):
-        correct_word = generate_word(n)
-        predicted_word = run_one(model, n)
+        correct_tokens = generate_formula(n).preorder()
+        predicted_tokens = run_one(model, n)
         total += 1
-        if correct_word == predicted_word:
+        if correct_tokens == predicted_tokens:
             correct += 1
         else:
             print(f"error on {n} :")
-            print(f"    prediction:  {predicted_word}")
-            print(f"    correct:     {correct_word}")
+            print(f"    prediction:  {predicted_tokens}")
+            print(f"    correct:     {correct_tokens}")
     print(f"got {correct}/{total} = {correct/total:.3f}% correct")
 
 
 if __name__ == "__main__":
-    evaluate()
+    train()
