@@ -267,7 +267,7 @@ def normal(name):
     return normalized
 
 
-if __name__ == "__main__":
+def main():
     if "--generate" in sys.argv:
         print("generating...")
         check_size(DATA_SIZE)
@@ -280,3 +280,7 @@ if __name__ == "__main__":
         return
 
     print("set a flag to do a thing")
+
+
+if __name__ == "__main__":
+    main()
