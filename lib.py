@@ -7,6 +7,7 @@ import random
 import re
 import string
 import subprocess
+import sys
 import torch
 from torch import nn
 from torch import optim
@@ -35,6 +36,8 @@ FORMULA_LENGTH = NUM_LEAVES * 2 - 1
 
 LETTERS = list(string.ascii_letters)
 WORD_LENGTH = 10
+
+DATA_SIZE = 10000
 
 
 class Formula:
@@ -265,5 +268,15 @@ def normal(name):
 
 
 if __name__ == "__main__":
-    for n in range(10000):
-        normal(n)
+    if "--generate" in sys.argv:
+        print("generating...")
+        check_size(DATA_SIZE)
+        return
+
+    if "--normalize" in sys.argv:
+        print("normalizing...")
+        for n in range(DATA_SIZE):
+            normal(n)
+        return
+
+    print("set a flag to do a thing")
