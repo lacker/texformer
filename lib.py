@@ -26,19 +26,19 @@ INFIX = "infix"
 ATOMS = ["x", "y"]
 # ["x", "y", "z", "a", "b", "c", "1", "2", "3", "4", "\\alpha", "\\beta"]
 
-PREFIX_OP = "\\frac"
+PREFIX_OPS = ["\\frac"]
 INFIX_OPS = ["+"]  # [" \\cdot ", "^", "_", "+", "-"]
-TOKENS = ATOMS + [PREFIX_OP] + INFIX_OPS
+TOKENS = ATOMS + PREFIX_OPS + INFIX_OPS
 
 NUM_LEAVES = 6
-FORMULA_LENGTH = 2 * NUM_LEAVES - 1
+FORMULA_LENGTH = NUM_LEAVES * 2 - 1
 
 LETTERS = list(string.ascii_letters)
 WORD_LENGTH = 10
 
 
 class Formula:
-    def __init__(self, size):
+    def __init__(self, size, allow_infix=True):
         """
         Size is just the number of leaf nodes. There are also (size - 1) internal nodes.
         """
@@ -56,13 +56,12 @@ class Formula:
         self.left = Formula(left_size)
         self.right = Formula(right_size)
 
-        if random.random() < 0.1:
+        if random.random() < 0.5:
             self.node_type = PREFIX
-            self.token = PREFIX_OP
-            return
-
-        self.node_type = INFIX
-        self.token = random.choice(INFIX_OPS)
+            self.token = random.choice(PREFIX_OPS)
+        else:
+            self.node_type = INFIX
+            self.token = random.choice(INFIX_OPS)
 
     def __str__(self):
         if self.node_type == ATOM:
@@ -92,6 +91,49 @@ class Formula:
             answer += self.right.preorder()
         return answer
 
+    def inorder(self):
+        "Return a list of the tokens in this formula, in inorder."
+        answer = []
+        if self.left is not None:
+            answer += self.left.inorder()
+        answer += [self.token]
+        if self.right is not None:
+            answer += self.right.inorder()
+        return answer
+
+    def normalize(self):
+        """
+        Move infix operators to process them left-to-right.
+        """
+        if self.node_type == ATOM:
+            return
+
+        if self.node_type == PREFIX:
+            self.left.normalize()
+            self.right.normalize()
+            return
+
+        if self.left.node_type != INFIX:
+            self.left.normalize()
+            self.right.normalize()
+            return
+
+        # Now we have the awkward case - where both the root and the left side are infix.
+        # Do a rotation, then renormalize.
+        # We do this by cutting self.left out of the tree and gluing back together the three pieces.
+        cut = self.left
+        a = cut.left
+        b = cut.right
+        c = self.right
+        self.token, cut.token = cut.token, self.token
+        self.left = a
+        self.right = cut
+        cut.left = b
+        cut.right = c
+
+        # We might have to rotate more, so renormalize.
+        self.normalize()
+
 
 TEMPLATE = r"""
 \documentclass[varwidth=true, border=1pt]{standalone}
@@ -103,7 +145,12 @@ $%s$
 
 def generate_formula(n):
     random.seed(n)
-    return Formula(NUM_LEAVES)
+    f = Formula(NUM_LEAVES)
+    precheck = f.inorder()
+    f.normalize()
+    postcheck = f.inorder()
+    assert precheck == postcheck
+    return f
 
 
 def generate_word(n):
