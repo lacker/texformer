@@ -27,6 +27,9 @@ ATOMS = ["x", "y", "z", "a", "b", "c", "1", "2", "3", "4", "\\alpha", "\\beta"]
 PREFIX_OP = "\\frac"
 INFIX_OPS = [" \\cdot ", "^", "_", "+", "-"]
 
+NUM_LEAVES = 6
+FORMULA_SIZE = 2 * NUM_LEAVES - 1
+
 LETTERS = list(string.ascii_letters)
 WORD_LENGTH = 10
 
@@ -97,7 +100,7 @@ $%s$
 
 def generate_formula(n):
     random.seed(n)
-    return Formula(10)
+    return Formula(NUM_LEAVES)
 
 
 def generate_word(n):
@@ -115,7 +118,7 @@ def generate_pdf(n):
         # It already has been generated.
         return
 
-    tex = TEMPLATE % generate_word(n)
+    tex = TEMPLATE % generate_formula(n)
     write(tex, n)
 
 
@@ -210,7 +213,4 @@ def normal(name):
 
 
 if __name__ == "__main__":
-    for i in range(100000):
-        generate_pdf(i)
-        normal(i)
-        print(f"normalized {i}")
+    check_size(10000)
