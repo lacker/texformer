@@ -128,8 +128,8 @@ def train():
     tokens_per_epoch = len(train_dataset) * BLOCK_SIZE
     conf = TrainerConfig(
         max_epochs=epochs,
-        batch_size=8,
-        learning_rate=3e-4,
+        batch_size=4,
+        learning_rate=6e-5,
         lr_decay=False,
         warmup_tokens=tokens_per_epoch,
         final_tokens=epochs * tokens_per_epoch,
@@ -158,7 +158,7 @@ def evaluate():
     model = get_model()
     correct = 0
     total = 0
-    for n in range(TRAIN_SIZE):
+    for n in range(TRAIN_SIZE, DATA_SIZE):
         correct_tokens = generate_formula(n).preorder()
         predicted_tokens = run_one(model, n)
         total += 1
