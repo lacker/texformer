@@ -27,7 +27,7 @@ INFIX = "infix"
 ATOMS = ["x", "y", "z", "a", "b", "c", "1", "2", "3", "4", "\\alpha", "\\beta"]
 
 PREFIX_OPS = ["\\frac"]
-INFIX_OPS = ["+", " \\cdot ", "^", "_", "+", "-"]
+INFIX_OPS = ["+", " \\cdot ", "+", "-"]
 TOKENS = ATOMS + PREFIX_OPS + INFIX_OPS
 
 NUM_LEAVES = 6
