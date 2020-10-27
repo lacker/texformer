@@ -158,7 +158,7 @@ def evaluate():
     model = get_model()
     correct = 0
     total = 0
-    for n in range(TRAIN_SIZE, DATA_SIZE):
+    for n in range(TRAIN_SIZE):
         correct_tokens = generate_formula(n).preorder()
         predicted_tokens = run_one(model, n)
         total += 1
@@ -172,5 +172,4 @@ def evaluate():
 
 
 if __name__ == "__main__":
-    train()
     evaluate()
